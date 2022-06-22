@@ -233,8 +233,8 @@ window.addEventListener('load', () => {
 
     function AtlassianEditor(props: any) {
 
-        // const [data, setData] = useState(null);
         const [data, setData] = useState({
+            // @ts-ignore
             "version": 1,
             "type": "doc",
             "content": []
@@ -255,6 +255,7 @@ window.addEventListener('load', () => {
                         setData(JSON.parse(data.document.content))
                     } else {
                         setData({
+                            // @ts-ignore
                             "version": 1,
                             "type": "doc",
                             "content": []
@@ -270,18 +271,8 @@ window.addEventListener('load', () => {
                         defaultValue={data ?? {}}
                         appearance="comment"
                         placeholder='Write something...'
+
                         insertMenuItems={customInsertMenuItems}
-                        allowTables={{
-                            advanced: true,
-                            allowColumnResizing: true,
-                            allowMergeCells: true,
-                            allowNumberColumn: true,
-                            allowBackgroundColor: true,
-                            allowHeaderRow: true,
-                            allowHeaderColumn: true,
-                            permittedLayouts: 'all',
-                            stickToolbarToBottom: true
-                        }}
 
                         // taskDecisionProvider={taskDecisionProvider}
                         // allowTasksAndDecisions
@@ -299,19 +290,19 @@ window.addEventListener('load', () => {
                             allowDropzoneDropLine: true,
                             isCopyPasteEnabled: true,
 
-                            // allowMediaGroup: true,
+                            allowMediaGroup: true,
                             allowResizingInTables: true,
-                            // allowLinking: true,
+                            allowLinking: true,
                             allowLazyLoading: true,
-                            // allowBreakoutSnapPoints: true,
+                            allowBreakoutSnapPoints: true,
                             allowAdvancedToolBarOptions: true,
                             allowMediaSingleEditable: true,
-                            // allowRemoteDimensionsFetch: true,
+                            allowRemoteDimensionsFetch: true,
                             allowMarkingUploadsAsIncomplete: true,
-                            // fullWidthEnabled: true,
+                            fullWidthEnabled: true,
                             waitForMediaUpload: true,
                             allowAltTextOnImages: true,
-                            // enableDownloadButton: true,
+                            enableDownloadButton: true,
                             useForgePlugins: true,
                             // alignLeftOnInsert: true,
                         }}
