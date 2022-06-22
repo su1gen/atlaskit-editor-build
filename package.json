@@ -1,0 +1,49 @@
+{
+  "name": "atlassian-editor-v5",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@atlaskit/editor-core": "^167.0.0",
+    "react": "^16.14.0",
+    "react-dom": "^16.14.0",
+    "react-intl-next": "npm:react-intl@^5.18.1",
+    "styled-components": "^3.2.6",
+    "y-prosemirror": "^1.1.2",
+    "y-websocket": "^1.4.3",
+    "yjs": "^13.5.39"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.10",
+    "@babel/preset-env": "^7.17.10",
+    "@babel/preset-react": "^7.16.7",
+    "@types/jest": "^27.5.1",
+    "@types/node": "^16.11.36",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.4",
+    "clean-webpack-plugin": "^4.0.0",
+    "react-scripts": "4.0.3",
+    "ts-loader": "8.4.0",
+    "typescript": "^4.6.4",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "scripts": {
+    "dev": "webpack-dev-server --open-page ./public/index.html",
+    "dist": "webpack --mode=production",
+    "build": "set NODE_ENV=production && webpack --config webpack.config.js",
+    "start": "react-scripts start",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
+  ]
+}
