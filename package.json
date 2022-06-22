@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@atlaskit/editor-core": "^167.0.0",
+    "js-search": "^2.0.0",
     "react": "^16.14.0",
     "react-dom": "^16.14.0",
     "react-intl-next": "npm:react-intl@^5.18.1",
