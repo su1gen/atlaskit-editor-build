@@ -409,6 +409,8 @@ window.addEventListener('load', () => {
                           maxWait: 25,
                       }, users))}
 
+
+                      allowLayouts
                       allowTables={{
                           advanced: true,
                           allowColumnResizing: true,
