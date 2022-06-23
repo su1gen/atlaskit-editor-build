@@ -399,7 +399,6 @@ window.addEventListener('load', () => {
                       defaultValue={data ?? {}}
                       appearance="comment"
                       placeholder='Write something...'
-
                       insertMenuItems={customInsertMenuItems}
 
                         // taskDecisionProvider={taskDecisionProvider}
@@ -410,33 +409,48 @@ window.addEventListener('load', () => {
                           maxWait: 25,
                       }, users))}
 
+                      allowTables={{
+                          advanced: true,
+                          allowColumnResizing: true,
+                          allowMergeCells: true,
+                          allowNumberColumn: true,
+                          allowBackgroundColor: true,
+                          allowHeaderRow: true,
+                          allowHeaderColumn: true,
+                          permittedLayouts: 'all',
+                          stickToolbarToBottom: true
+                      }}
+
+                        // taskDecisionProvider={taskDecisionProvider}
+                        // allowTasksAndDecisions
+
+
                       media={{
+                          // provider: mediaProvider,
+                          // useMediaPickerPopup: false,
+                          // allowMediaGroup: true,
+                          // allowLinking: true,
+                          // allowBreakoutSnapPoints: true,
+                          // allowRemoteDimensionsFetch: true,
+                          // fullWidthEnabled: true,
+                          // enableDownloadButton: true,
+                          // alignLeftOnInsert: true,
+                          // useForgePlugins: true,
+
                           featureFlags: {
                               captions: true,
                           },
-
-                          // provider: mediaProvider,
                           allowResizing: true,
                           allowMediaSingle: true,
-                          // useMediaPickerPopup: false,
                           allowDropzoneDropLine: true,
                           isCopyPasteEnabled: true,
-
-                          allowMediaGroup: true,
                           allowResizingInTables: true,
-                          allowLinking: true,
                           allowLazyLoading: true,
-                          allowBreakoutSnapPoints: true,
                           allowAdvancedToolBarOptions: true,
                           allowMediaSingleEditable: true,
-                          allowRemoteDimensionsFetch: true,
                           allowMarkingUploadsAsIncomplete: true,
-                          fullWidthEnabled: true,
                           waitForMediaUpload: true,
                           allowAltTextOnImages: true,
-                          enableDownloadButton: true,
-                          useForgePlugins: true,
-                          // alignLeftOnInsert: true,
                       }}
                       primaryToolbarComponents={
                           <WithEditorActions
