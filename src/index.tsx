@@ -269,7 +269,7 @@ window.addEventListener('load', () => {
             }
             // @ts-ignore
             const users = await fetch(window.location.origin.includes('localhost')
-              ? 'https://cochorg.wn.staj.fun/users' : window.location.origin).then(res => {
+              ? 'https://cochorg.wn.staj.fun/users' : `${window.location.origin}/users`).then(res => {
               return res.json()
             })
             // @ts-ignore
