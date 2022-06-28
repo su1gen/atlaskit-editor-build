@@ -174,6 +174,7 @@ window.addEventListener('load', () => {
 
       // const room = `coch-org-document-test1`
       // const provider = new WebsocketProvider('ws://localhost:3001', room, ydoc)
+      // const provider = new WebsocketProvider('wss://n.coch.org', room, ydoc)
 
       /**
        * The Atlasian Editor does not provide a method to add custom ProseMirror plugins.
@@ -232,38 +233,54 @@ window.addEventListener('load', () => {
 
       function AtlassianEditor(props: any) {
 
-        const [data, setData] = useState({
-          // @ts-ignore
-          "version": 1,
-          "type": "doc",
-          "content": []
-        });
+        const [content, setContent] = useState({
+            "version": 1,
+            "type": "doc",
+            "content": []
+          });
+        // const [data, setData] = useState({
+        //   "version": 1,
+        //   "type": "doc",
+        //   "content": [
+        //     {
+        //       "type": "paragraph",
+        //       "content": [
+        //         {
+        //           "type": "text",
+        //           "text": "11111111"
+        //         }
+        //       ]
+        //     }
+        //   ]
+        // });
+
         const [users, setUsers] = useState(null)
         const [users1, setUsers1] = useState(null)
 
         // @ts-ignore
         useEffect(() => {
           async function getData() {
-            // @ts-ignore
-            let editDocumentForm = document.querySelector("#edit-document-form")
-            if (editDocumentForm) {
+
+            let responseData = await fetch(`https://n.coch.org/document-room/${room}`)
+              .then((response) => {
+                return response.json();
+              })
+
+            if (!responseData.isRoomExist){
               // @ts-ignore
-              let getDraftURL = editDocumentForm.dataset.getDraft
-              if (getDraftURL) {
-                const data = await fetch(getDraftURL)
-                  .then((response) => {
-                    return response.json();
-                  })
-                if (data?.document?.content) {
-                  setData(JSON.parse(data.document.content))
-                  console.log("data1:", JSON.parse(data.document.content))
-                } else {
-                  setData({
-                    // @ts-ignore
-                    "version": 1,
-                    "type": "doc",
-                    "content": []
-                  })
+              let editDocumentForm = document.querySelector("#edit-document-form")
+              if (editDocumentForm) {
+                // @ts-ignore
+                let getDraftURL = editDocumentForm.dataset.getDraft
+                if (getDraftURL) {
+                  const draftData = await fetch(getDraftURL)
+                    .then((response) => {
+                      return response.json();
+                    })
+                  if (draftData?.document?.content) {
+                    setContent(JSON.parse(draftData.document.content))
+                    console.log("data1:", JSON.parse(draftData.document.content))
+                  }
                 }
               }
             }
@@ -294,8 +311,8 @@ window.addEventListener('load', () => {
 
         return (
           <IntlProvider locale="en">
-            {(users && data) && <Editor
-              defaultValue={data ?? {}}
+            {(users) && <Editor
+              defaultValue={content}
               appearance="comment"
               placeholder='Write something...'
               insertMenuItems={customInsertMenuItems}
