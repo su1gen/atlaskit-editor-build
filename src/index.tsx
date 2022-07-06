@@ -25,6 +25,29 @@ import {keymap} from 'prosemirror-keymap'
 import {MockMentionResource} from './Mention'
 
 
+import styled from 'styled-components';
+import ExamplesErrorBoundary from './helpers/ExamplesErrorBoundary';
+import {
+  Provider as SmartCardProvider,
+  Client as SmartCardClient,
+} from '@atlaskit/smart-card';
+
+const smartCardClient = new SmartCardClient('staging');
+
+const Wrapper: any = styled.div`
+  box-sizing: border-box;
+  height: 100%;
+`;
+Wrapper.displayName = 'Wrapper';
+
+const Content: any = styled.div`
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+`;
+Content.displayName = 'Content';
+
+
 // interface TaskDecisionProvider {
 //     unsubscribeRecentUpdates(id: RecentUpdatesId): void;
 //
@@ -102,20 +125,43 @@ const customInsertMenuItems = [
             body: data
           })
             .then(response => response.json())
+            // .then(data => {
+            // editorActions.replaceSelection({
+            //   "type": "mediaSingle",
+            //   "content": [
+            //     {
+            //       "type": "media",
+            //       "attrs": {
+            //         "type": "external",
+            //         // "url": `http://localhost:3000/${data.path}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`
+            //         "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`,
+            //         "width": 527,
+            //         "height": 329
+            //       }
+            //     }
+            //   ]
+            // })
             .then(data => {
+
+
               editorActions.replaceSelection({
                 "type": "mediaSingle",
                 "content": [
                   {
                     "type": "media",
                     "attrs": {
+                      // "type": "file",
                       "type": "external",
-                      // "url": `http://localhost:3000/${data.path}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`
-                      "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`
+                      "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`,
+                      "collection": "MediaServicesSample",
+                      "name": "(89).jpg",
+                      "width": 527,
+                      "height": 329
                     }
                   }
                 ]
               })
+
 
               // "blob:https://mys1t3.atlassian.net/424690ae-8237-4266-a8b3-9e28b0d1b8ec#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt="
 
@@ -138,30 +184,85 @@ const customInsertMenuItems = [
         }
       });
 
-      // const teardown = () => {
-      //     document.body.removeEventListener('focus', teardown, true);
-      //     setTimeout(() => {
-      //         document.body.removeChild(inputElemenet);
-      //     }, 1000);
-      // }
-      // document.body.addEventListener('focus', teardown, true);
-
       document.body.appendChild(inputElement);
       inputElement.click();
-
-
-      // editorActions.replaceSelection({
-      //     "type": "paragraph",
-      //     "content": [
-      //         {
-      //             "type": "text",
-      //             "text": "Some text in a paragraph"
-      //         }
-      //     ]
-      // })
     }
   }
 ];
+
+// @ts-ignore
+interface AsapBasedAuth {
+  readonly asapIssuer: string;
+  readonly token: string;
+  readonly baseUrl: string;
+}
+
+interface ClientBasedAuth {
+  readonly clientId: string;
+  readonly token: string;
+  readonly baseUrl: string;
+}
+
+interface AuthContext {
+  readonly collectionName?: string;
+}
+
+interface UploadParams {
+  collection?: string;
+}
+
+declare type Auth = ClientBasedAuth | AsapBasedAuth;
+declare type AuthProvider = (context?: AuthContext) => Promise<Auth>;
+declare type AuthFromContextProvider = (contextId: string) => Promise<Auth>;
+
+interface MediaClientConfig {
+  readonly authProvider: AuthProvider;
+  readonly initialAuth?: Auth;
+  readonly stargateBaseUrl?: string;
+  readonly getAuthFromContext?: AuthFromContextProvider;
+}
+
+// @ts-ignore
+declare type MediaProvider = {
+  uploadParams?: UploadParams;
+  /**
+   * (optional) Used for creating new uploads and finalizing files.
+   * NOTE: We currently don't accept MediaClientConfig, because we need config properties
+   *       to initialize
+   */
+  uploadMediaClientConfig?: MediaClientConfig;
+  /**
+   * Used for displaying Media Cards and downloading files.
+   */
+  viewMediaClientConfig: MediaClientConfig;
+};
+
+let clientBaseAuth: Promise<Auth> = Promise.resolve({
+  clientId: "clientId",
+  token: "token",
+  baseUrl: "http://localhost:3000",
+})
+let authProvider = (): Promise<Auth> => {
+  return Promise.resolve(clientBaseAuth)
+}
+
+let mediaClientConfig: MediaClientConfig = {
+  authProvider: authProvider,
+}
+
+let uploadMediaClientConfig: MediaClientConfig = {
+  authProvider: authProvider,
+}
+// @ts-ignore
+const mediaProvider: Promise<MediaProvider> = Promise.resolve({
+  uploadParams: {
+    collection: "myCollection"
+  },
+
+  viewMediaClientConfig: mediaClientConfig,
+  uploadMediaClientConfig: uploadMediaClientConfig,
+})
+
 
 window.addEventListener('load', () => {
     // @ts-ignore
@@ -217,42 +318,13 @@ window.addEventListener('load', () => {
         }])
       }
 
-      function DelHeight_P_Empty(container: { querySelectorAll: (arg0: string) => any; }) {
-        const all_p_elem = container.querySelectorAll('p')
-        if (all_p_elem.length !== 0) {
-          all_p_elem.forEach((elem: { innerText: string | any[]; style: { height: string; }; }) => {
-            if (elem.innerText.length === 1) {
-              elem.style.height = '0px'
-            } else {
-              elem.style.height = 'initial'
-            }
-          })
-        }
-      }
-
-
       function AtlassianEditor(props: any) {
 
         const [content, setContent] = useState({
-            "version": 1,
-            "type": "doc",
-            "content": []
-          });
-        // const [data, setData] = useState({
-        //   "version": 1,
-        //   "type": "doc",
-        //   "content": [
-        //     {
-        //       "type": "paragraph",
-        //       "content": [
-        //         {
-        //           "type": "text",
-        //           "text": "11111111"
-        //         }
-        //       ]
-        //     }
-        //   ]
-        // });
+          "version": 1,
+          "type": "doc",
+          "content": []
+        });
 
         const [users, setUsers] = useState(null)
         const [users1, setUsers1] = useState(null)
@@ -266,7 +338,7 @@ window.addEventListener('load', () => {
                 return response.json();
               })
 
-            if (!responseData.isRoomExist){
+            if (!responseData.isRoomExist) {
               // @ts-ignore
               let editDocumentForm = document.querySelector("#edit-document-form")
               if (editDocumentForm) {
@@ -306,162 +378,387 @@ window.addEventListener('load', () => {
           getData()
         }, []);
 
-        console.log(users, 'usersFilter')
-        console.log(users1,  'users')
-
         return (
           <IntlProvider locale="en">
-            {(users) && <Editor
-              defaultValue={content}
-              appearance="comment"
-              placeholder='Write something...'
-              insertMenuItems={customInsertMenuItems}
+            {(users) &&
+                <ExamplesErrorBoundary>
+                    <Wrapper>
+                        <Content>
+                            <SmartCardProvider client={smartCardClient}>
+                                <Editor
+                                  // UNSAFE_allowUndoRedoButtons={true}
+                                  // allowAnalyticsGASV3={true}
+                                  // quickInsert={{ provider: Promise.resolve(quickInsertProvider) }}
+                                  // allowTextColor={{
+                                  //   allowMoreTextColors: true,
+                                  // }}
+                                  // allowTables={{
+                                  //   advanced: true,
+                                  //   allowColumnSorting: true,
+                                  //   stickyHeaders: true,
+                                  //   tableCellOptimization: true,
+                                  //   allowCollapse: true,
+                                  //   allowDistributeColumns: true,
+                                  // }}
+                                  // allowBreakout={true}
+                                  // allowJiraIssue={true}
+                                  // allowPanel
+                                  // allowExtension={{
+                                  //   allowBreakout: true,
+                                  // }}
+                                  // allowRule={true}
+                                  // allowDate={true}
+                                  // allowLayouts={{
+                                  //   allowBreakout: true,
+                                  //   UNSAFE_addSidebarLayouts: true,
+                                  //   UNSAFE_allowSingleColumnLayout: true,
+                                  // }}
+                                  // allowTextAlignment={true}
+                                  // allowIndentation={true}
+                                  // allowDynamicTextSizing={true}
+                                  // allowTemplatePlaceholders={{allowInserting: true}}
+                                  // smartLinks={{
+                                  //   provider: Promise.resolve(cardProviderStaging),
+                                  //   allowBlockCards: true,
+                                  //   allowEmbeds: true,
+                                  //   allowResizing: true,
+                                  //   useAlternativePreloader: false,
+                                  // }}
+                                  // allowExpand={{
+                                  //   allowInsertion: true,
+                                  //   allowInteractiveExpand: true,
+                                  // }}
+                                    waitForMediaUpload={true}
+                                  // allowStatus={true}
+                                  // allowFindReplace={{
+                                  //   allowMatchCase: true,
+                                  // }}
+                                  // allowNestedTasks
+                                  // codeBlock={{
+                                  //   allowCopyToClipboard: true,
+                                  //   appearance: this.state.appearance,
+                                  // }}
 
-              // taskDecisionProvider={taskDecisionProvider}
-              // allowTasksAndDecisions
+                                  // media={{
+                                  //   provider: mediaProvider,
+                                  //   allowMediaSingle: true,
+                                  //   allowResizing: true,
+                                  //   allowLinking: true,
+                                  //   allowResizingInTables: true,
+                                  //   allowAltTextOnImages: true,
+                                  //   altTextValidator: (value: string) => {
+                                  //     const errors = [];
+                                  //     if (!/^[A-Z]/g.test(value)) {
+                                  //       errors.push('Please start with capital letter.');
+                                  //     }
+                                  //     if (!/^[^"<>&\\]*$/g.test(value)) {
+                                  //       errors.push('Please remove special characters.');
+                                  //     }
+                                  //     if (!/(\w.+\s).+/g.test(value)) {
+                                  //       errors.push('Please use at least two words.');
+                                  //     }
+                                  //     return errors;
+                                  //   },
+                                  //   featureFlags: mediaEditorProps,
+                                  // }}
+                                  //   allowHelpDialog
+                                  // placeholder="Use markdown shortcuts to format your page as you type, like * for lists, # for headers, and *** for a horizontal rule."
+                                  // placeholderHints={[
+                                  //   "Type '/' to insert content.",
+                                  //   "Type ':' to insert an emoji.",
+                                  //   "Type '@' to insert a mention.",
+                                  //   "We added more background colors to tables cells. Try it, type '/tables'.",
+                                  //   "Do you need more help? Type '/help'",
+                                  // ]}
+                                  // placeholderBracketHint="Did you mean to use '/' to insert content?"
+                                  //   shouldFocus={true}
+                                  // disabled={this.state.disabled}
+                                  // defaultValue={
+                                  //     (localStorage &&
+                                  //         localStorage.getItem(LOCALSTORAGE_defaultDocKey)) ||
+                                  //     undefined
+                                  // }
+                                  // contentComponents={
+                                  //   <WithEditorActions
+                                  //       render={(actions) => (
+                                  //           <>
+                                  //             <BreadcrumbsMiscActions
+                                  //                 appearance={this.state.appearance}
+                                  //                 onFullWidthChange={this.setFullWidthMode}
+                                  //             />
+                                  //             <TitleInput
+                                  //                 value={this.state.title}
+                                  //                 onChange={this.handleTitleChange}
+                                  //                 innerRef={this.handleTitleRef}
+                                  //                 onFocus={this.handleTitleOnFocus}
+                                  //                 onBlur={this.handleTitleOnBlur}
+                                  //                 onKeyDown={(e: KeyboardEvent) => {
+                                  //                   this.onKeyPressed(e, actions);
+                                  //                 }}
+                                  //             />
+                                  //           </>
+                                  //       )}
+                                  //   />
+                                  // }
+                                  // primaryToolbarComponents={[
+                                  //   <WithEditorActions
+                                  //       key={1}
+                                  //       render={(actions) => {
+                                  //         this.editorActions = actions;
+                                  //
+                                  //         return (
+                                  //             <>
+                                  //               {this.props.customPrimaryToolbarComponents}
+                                  //               <Button
+                                  //                   isDisabled={!actions}
+                                  //                   onClick={this.onCopyLinkWithContent}
+                                  //                   style={{ marginRight: 5 }}
+                                  //               >
+                                  //                 Copy link
+                                  //               </Button>
+                                  //               <SaveAndCancelButtons
+                                  //                   editorActions={actions}
+                                  //                   setMode={this.props.setMode}
+                                  //               />
+                                  //             </>
+                                  //         );
+                                  //       }}
+                                  //   />,
+                                  // ]}
+                                  // primaryToolbarIconBefore={
+                                  //   <Button
+                                  //       iconBefore={<AtlassianIcon />}
+                                  //       appearance="subtle"
+                                  //       shouldFitContainer
+                                  //   ></Button>
+                                  // }
+                                  // onSave={SAVE_ACTION}
+                                  // insertMenuItems={customInsertMenuItems}
+                                  // extensionHandlers={extensionHandlers}
+                                  // performanceTracking={{
+                                  //   ttiTracking: {
+                                  //     enabled: true,
+                                  //     trackSeverity: true,
+                                  //     ttiSeverityNormalThreshold:
+                                  //     TTI_SEVERITY_THRESHOLD_DEFAULTS.NORMAL,
+                                  //     ttiSeverityDegradedThreshold:
+                                  //     TTI_SEVERITY_THRESHOLD_DEFAULTS.DEGRADED,
+                                  //     ttiFromInvocationSeverityNormalThreshold:
+                                  //     TTI_FROM_INVOCATION_SEVERITY_THRESHOLD_DEFAULTS.NORMAL,
+                                  //     ttiFromInvocationSeverityDegradedThreshold:
+                                  //     TTI_FROM_INVOCATION_SEVERITY_THRESHOLD_DEFAULTS.DEGRADED,
+                                  //   },
+                                  //   transactionTracking: { enabled: true },
+                                  //   uiTracking: { enabled: true },
+                                  //   nodeViewTracking: { enabled: true },
+                                  //   inputTracking: { enabled: true, countNodes: true },
+                                  //   bFreezeTracking: {
+                                  //     trackInteractionType: true,
+                                  //     trackSeverity: true,
+                                  //     severityNormalThreshold: BROWSER_FREEZE_NORMAL_SEVERITY_THRESHOLD,
+                                  //     severityDegradedThreshold: BROWSER_FREEZE_DEGRADED_SEVERITY_THRESHOLD,
+                                  //   },
+                                  //   proseMirrorRenderedTracking: {
+                                  //     trackSeverity: true,
+                                  //     severityNormalThreshold: PROSEMIRROR_RENDERED_NORMAL_SEVERITY_THRESHOLD,
+                                  //     severityDegradedThreshold: PROSEMIRROR_RENDERED_DEGRADED_SEVERITY_THRESHOLD,
+                                  //   },
+                                  //   contentRetrievalTracking: {
+                                  //     enabled: true,
+                                  //     successSamplingRate: 2,
+                                  //     failureSamplingRate: 1,
+                                  //     reportErrorStack: true,
+                                  //   },
+                                  //   onEditorReadyCallbackTracking: { enabled: true },
+                                  //   pasteTracking: { enabled: true },
+                                  //   renderTracking: {
+                                  //     editor: {
+                                  //       enabled: true,
+                                  //       useShallow: false,
+                                  //     },
+                                  //     reactEditorView: {
+                                  //       enabled: true,
+                                  //       useShallow: false,
+                                  //     },
+                                  //   },
+                                  // }}
 
-              mentionProvider={Promise.resolve(new MockMentionResource({
-                minWait: 10,
-                maxWait: 25,
-              }, users))}
-              allowLayouts
-              allowTables={{
-                advanced: true,
-                allowColumnResizing: true,
-                allowMergeCells: true,
-                allowNumberColumn: true,
-                allowBackgroundColor: true,
-                allowHeaderRow: true,
-                allowHeaderColumn: true,
-                permittedLayouts: 'all',
-                stickToolbarToBottom: true
-              }}
-              // taskDecisionProvider={taskDecisionProvider}
-              // allowTasksAndDecisions
-              media={{
-                // provider: mediaProvider,
-                // useMediaPickerPopup: false,
-                // allowMediaGroup: true,
-                // allowLinking: true,
-                // allowBreakoutSnapPoints: true,
-                // allowRemoteDimensionsFetch: true,
-                // fullWidthEnabled: true,
-                // enableDownloadButton: true,
-                // alignLeftOnInsert: true,
-                // useForgePlugins: true,
-                featureFlags: {
-                  captions: true,
-                },
-                allowResizing: true,
-                allowMediaSingle: true,
-                allowDropzoneDropLine: true,
-                isCopyPasteEnabled: true,
-                allowResizingInTables: true,
-                allowLazyLoading: true,
-                allowAdvancedToolBarOptions: true,
-                allowMediaSingleEditable: true,
-                allowMarkingUploadsAsIncomplete: true,
-                waitForMediaUpload: true,
-                allowAltTextOnImages: true,
-              }}
-              primaryToolbarComponents={
-                <WithEditorActions
+                                  // featureFlags={{
+                                  //   ...this.props.featureFlags,
+                                  //   // Enabling to catch during dev by default
+                                  //   'safer-dispatched-transactions': true,
+                                  // }}
+                                  // appearance='full-page'
+                                  // onEditorReady={this.onEditorReady}
+                                  // trackValidTransactions={{samplingRate: 100}}
 
-                  render={actions => (
-                    <div>
-                      <button
-                        onClick={async () => {
-                          let currentContent = await actions.getValue()
-                          // @ts-ignore
-                          let updateDraftURL = document.querySelector("#edit-document-form")?.dataset.updateDraft
-                          let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
-                          if (currentContent && updateDraftURL && access_token) {
 
-                            let data = {
-                              'document': currentContent,
-                              '_method': 'PUT'
-                            }
+                                    defaultValue={content}
+                                    appearance="full-page"
+                                    placeholder='Write something...'
+                                    insertMenuItems={customInsertMenuItems}
 
-                            fetch(updateDraftURL, {
-                              method: 'POST',
-                              headers: {
-                                'X-CSRF-TOKEN': access_token,
-                                'Content-Type': 'application/json'
-                              },
-                              body: JSON.stringify(data)
-                            })
-                              .then(response => response.json())
-                              .then(data => {
-                                console.log(data)
-                              })
-                          }
-                        }}
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={async () => {
-                          let currentContent = await actions.getValue()
-                          // @ts-ignore
-                          let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
-                          let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
-                          if (currentContent && updateContentURL && access_token) {
+                                  // taskDecisionProvider={taskDecisionProvider}
+                                  // allowTasksAndDecisions
 
-                            let data = {
-                              'document': currentContent,
-                              '_method': 'PUT'
-                            }
+                                  // allowNewInsertionBehaviour
 
-                            fetch(updateContentURL, {
-                              method: 'POST',
-                              headers: {
-                                'X-CSRF-TOKEN': access_token,
-                                'Content-Type': 'application/json'
-                              },
-                              body: JSON.stringify(data)
-                            })
-                              .then(response => response.json())
-                              .then(data => {
-                                let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
+                                    mentionProvider={Promise.resolve(new MockMentionResource({
+                                      minWait: 10,
+                                      maxWait: 25,
+                                    }, users))}
+                                    allowLayouts
+                                    allowTables={{
+                                      advanced: true,
+                                      allowColumnResizing: true,
+                                      allowMergeCells: true,
+                                      allowNumberColumn: true,
+                                      allowBackgroundColor: true,
+                                      allowHeaderRow: true,
+                                      allowHeaderColumn: true,
+                                      permittedLayouts: 'all',
+                                      stickToolbarToBottom: true,
 
-                                if (documentContentWrapper) {
-                                  documentContentWrapper.innerHTML = data.data.document.content
-                                  const documentContentLoad = document.querySelector('.document-content')
-                                  const editorStyleAll = document.querySelectorAll('.common-editor-styles:not(.common-editor-styles-user-draft)')
-                                  const editorStyleTruAll = document.querySelectorAll('.common-editor-true:not(.common-editor-styles-user-draft)')
-                                  // @ts-ignore
-                                  documentContentLoad.classList.toggle('show-draft')
 
-                                  if (editorStyleAll) {
-                                    editorStyleAll.forEach(r => {
-                                      DelHeight_P_Empty(r)
-                                      r.classList.remove('common-editor-styles')
-                                      r.classList.remove('common-editor-styles_mac')
-                                      r.classList.add('common-editor-true_mac')
-                                      r.classList.add('common-editor-true')
-                                    })
-                                  }
-                                  if (editorStyleTruAll) {
-                                    editorStyleTruAll.forEach(r => {
-                                      DelHeight_P_Empty(r)
-                                      r.classList.remove('common-editor-true')
-                                      r.classList.add('common-editor-styles')
-                                      r.classList.add('common-editor-styles_mac')
-                                      r.classList.remove('common-editor-true_mac')
-                                    })
-                                  }
-                                }
-                              })
-                          }
-                        }}
-                      >
-                        Publish
-                      </button>
-                    </div>
-                  )}
-                />
-              }
-            />}
+                                      // allowColumnSorting: true,
+                                      // allowAddColumnWithCustomStep: true,
+
+
+                                      // allowCollapse: true,
+                                      // isHeaderRowRequired: true,
+                                      // allowControls: true,
+                                      // stickyHeaders: true,
+
+
+                                      // allowCellOptionsInFloatingToolbar: true,
+                                      // tableCellOptimization: true,
+                                      // tableRenderOptimization: true,
+                                      // stickyHeadersOptimization: true,
+                                      // initialRenderOptimization: true,
+                                      // mouseMoveOptimization: true,
+                                      // tableOverflowShadowsOptimization: true,
+                                      // allowDistributeColumns: true,
+
+                                    }}
+                                  // taskDecisionProvider={taskDecisionProvider}
+                                  // allowTasksAndDecisions
+                                    media={{
+                                      // @ts-ignore
+                                      // provider: mediaProvider,
+                                      // useMediaPickerPopup: false,
+                                      // allowMediaGroup: true,
+                                      // allowLinking: true,
+                                      // allowBreakoutSnapPoints: true,
+                                      // allowRemoteDimensionsFetch: true,
+                                      // fullWidthEnabled: true,
+                                      // enableDownloadButton: true,
+                                      // alignLeftOnInsert: true,
+                                      // useForgePlugins: true,
+                                      featureFlags: {
+                                        captions: true,
+                                      },
+                                      allowResizing: true,
+                                      allowMediaSingle: true,
+                                      allowDropzoneDropLine: true,
+                                      isCopyPasteEnabled: true,
+                                      allowResizingInTables: true,
+                                      allowLazyLoading: true,
+                                      allowAdvancedToolBarOptions: true,
+                                      allowMediaSingleEditable: true,
+                                      allowMarkingUploadsAsIncomplete: true,
+                                      waitForMediaUpload: true,
+                                      allowAltTextOnImages: true,
+                                    }}
+                                    primaryToolbarComponents={
+                                      <WithEditorActions
+                                        render={actions => (
+                                          <div>
+                                            <button
+                                              onClick={async () => {
+                                                let currentContent = await actions.getValue()
+                                                console.log(currentContent)
+                                              }}
+                                            >
+                                              Get data
+                                            </button>
+                                            <button
+                                              onClick={async () => {
+                                                let currentContent = await actions.getValue()
+                                                // @ts-ignore
+                                                let updateDraftURL = document.querySelector("#edit-document-form")?.dataset.updateDraft
+                                                let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                                                if (currentContent && updateDraftURL && access_token) {
+
+                                                  let data = {
+                                                    'document': currentContent,
+                                                    '_method': 'PUT'
+                                                  }
+
+                                                  fetch(updateDraftURL, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                      'X-CSRF-TOKEN': access_token,
+                                                      'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify(data)
+                                                  })
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                      console.log(data)
+                                                    })
+                                                }
+                                              }}
+                                            >
+                                              Save
+                                            </button>
+                                            <button
+                                              onClick={async () => {
+                                                let currentContent = await actions.getValue()
+                                                // @ts-ignore
+                                                let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
+                                                let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                                                if (currentContent && updateContentURL && access_token) {
+
+                                                  let data = {
+                                                    'document': currentContent,
+                                                    '_method': 'PUT'
+                                                  }
+
+                                                  fetch(updateContentURL, {
+                                                    method: 'POST',
+                                                    headers: {
+                                                      'X-CSRF-TOKEN': access_token,
+                                                      'Content-Type': 'application/json'
+                                                    },
+                                                    body: JSON.stringify(data)
+                                                  })
+                                                    .then(response => response.json())
+                                                    .then(data => {
+                                                      let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
+
+                                                      if (documentContentWrapper) {
+                                                        documentContentWrapper.innerHTML = data.data.document.content
+                                                        const documentContentLoad = document.querySelector('.document-content')
+
+                                                        // @ts-ignore
+                                                        documentContentLoad.classList.toggle('show-draft')
+                                                      }
+                                                    })
+                                                }
+                                              }}
+                                            >
+                                              Publish
+                                            </button>
+                                          </div>
+                                        )}
+                                      />
+                                    }
+                                />
+                            </SmartCardProvider>
+                        </Content>
+                    </Wrapper>
+                </ExamplesErrorBoundary>
+            }
           </IntlProvider>
         )
       }
