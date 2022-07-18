@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 // @ts-ignore
 import ReactDOM from 'react-dom'
 // @ts-ignore
-import {Editor, MediaProvider, WithEditorActions, EditorContext, BaseReactEditorView} from '@atlaskit/editor-core';
+import {Editor, MediaProvider, WithEditorActions, BaseReactEditorView} from '@atlaskit/editor-core';
 // @ts-ignore
 import {IntlProvider} from "react-intl-next";
 // import {
@@ -15,7 +15,7 @@ import {IntlProvider} from "react-intl-next";
 //     TaskState
 // } from "@atlaskit/task-decision/types";
 
-import AtlassianIcon from '@atlaskit/icon/glyph/editor/align-center';
+import ImageIcon from '@atlaskit/icon/glyph/editor/image';
 
 import * as Y from 'yjs'
 import {WebsocketProvider} from 'y-websocket'
@@ -93,6 +93,80 @@ Content.displayName = 'Content';
 // isDocumentEmpty(): boolean;
 // getResolvedEditorState(): Promise<ResolvedEditorState | undefined>;
 
+const setExpandEvents = () => {
+  let expandItems = document.querySelectorAll('.document-content-public .ak-editor-expand')
+  if (expandItems){
+    expandItems.forEach(item => {
+      let expandButton = item.querySelector('.ak-expand-button')
+      if (expandButton){
+        expandButton.addEventListener('click', () => {
+          item.classList.toggle('ak-editor-expand__expanded')
+        })
+      }
+    })
+  }
+}
+
+const sendAndInsertImage = (editorActions: any, uploadURL: string, access_token: string, image: any) => {
+  let data = new FormData()
+  data.append('upload', image)
+  // @ts-ignore
+  data.append('_token', access_token)
+
+  fetch(uploadURL, {
+    method: 'POST',
+    body: data
+  })
+    .then(response => response.json())
+    .then(data => {
+
+      let newWidth = data.originalSize.width
+      let newHeight = data.originalSize.height
+
+      if (newWidth > 760){
+        newHeight = Math.round(760 * newHeight / newWidth)
+        newWidth = 760
+      }
+
+      editorActions.replaceSelection({
+        "type": "mediaSingle",
+        "content": [
+          {
+            "type": "media",
+            "attrs": {
+              // "type": "file",
+              "type": "external",
+              "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=${newWidth}&height=${newHeight}&alt=`,
+              // "collection": "MediaServicesSample",
+              // "name": "(89).jpg",
+              "width": newWidth,
+              "height": newHeight,
+            }
+          }
+        ]
+      })
+
+
+      // "blob:https://mys1t3.atlassian.net/424690ae-8237-4266-a8b3-9e28b0d1b8ec#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt="
+
+
+      // editorActions.replaceDocument(
+      //     {
+      //     "type": "mediaSingle",
+      //     "content": [
+      //         {
+      //             "type": "media",
+      //             "attrs": {
+      //                 "type": "external",
+      //                 "url": `http://localhost:3000/${data.path}`
+      //             }
+      //         }
+      //     ]
+      // }
+      // )
+    })
+}
+
 
 const customInsertMenuItems = [
   {
@@ -101,7 +175,7 @@ const customInsertMenuItems = [
     tooltipDescription: "Insert image",
     tooltipPosition: "right",
     // @ts-ignore
-    elemBefore: <AtlassianIcon/>,
+    elemBefore: <ImageIcon/>,
 
     onClick: (editorActions: any) => {
 
@@ -114,73 +188,8 @@ const customInsertMenuItems = [
       inputElement.type = 'file';
       inputElement.addEventListener('change', () => {
         if (inputElement.files && uploadURL) {
-
-          var data = new FormData()
-          data.append('upload', inputElement.files[0])
           // @ts-ignore
-          data.append('_token', access_token)
-
-          fetch(uploadURL, {
-            method: 'POST',
-            body: data
-          })
-            .then(response => response.json())
-            // .then(data => {
-            // editorActions.replaceSelection({
-            //   "type": "mediaSingle",
-            //   "content": [
-            //     {
-            //       "type": "media",
-            //       "attrs": {
-            //         "type": "external",
-            //         // "url": `http://localhost:3000/${data.path}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`
-            //         "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`,
-            //         "width": 527,
-            //         "height": 329
-            //       }
-            //     }
-            //   ]
-            // })
-            .then(data => {
-
-
-              editorActions.replaceSelection({
-                "type": "mediaSingle",
-                "content": [
-                  {
-                    "type": "media",
-                    "attrs": {
-                      // "type": "file",
-                      "type": "external",
-                      "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt=`,
-                      "collection": "MediaServicesSample",
-                      "name": "(89).jpg",
-                      "width": 527,
-                      "height": 329
-                    }
-                  }
-                ]
-              })
-
-
-              // "blob:https://mys1t3.atlassian.net/424690ae-8237-4266-a8b3-9e28b0d1b8ec#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=527&height=329&alt="
-
-
-              // editorActions.replaceDocument(
-              //     {
-              //     "type": "mediaSingle",
-              //     "content": [
-              //         {
-              //             "type": "media",
-              //             "attrs": {
-              //                 "type": "external",
-              //                 "url": `http://localhost:3000/${data.path}`
-              //             }
-              //         }
-              //     ]
-              // }
-              // )
-            })
+          sendAndInsertImage(editorActions, uploadURL, access_token, inputElement.files[0])
         }
       });
 
@@ -320,11 +329,7 @@ window.addEventListener('load', () => {
 
       function AtlassianEditor(props: any) {
 
-        const [content, setContent] = useState({
-          "version": 1,
-          "type": "doc",
-          "content": []
-        });
+        const [content, setContent] = useState(null);
 
         const [users, setUsers] = useState(null)
         const [users1, setUsers1] = useState(null)
@@ -352,9 +357,23 @@ window.addEventListener('load', () => {
                   if (draftData?.document?.content) {
                     setContent(JSON.parse(draftData.document.content))
                     console.log("data1:", JSON.parse(draftData.document.content))
+                  } else {
+                    setContent({
+                      // @ts-ignore
+                      "version": 1,
+                      "type": "doc",
+                      "content": []
+                    })
                   }
                 }
               }
+            } else {
+              setContent({
+                // @ts-ignore
+                "version": 1,
+                "type": "doc",
+                "content": []
+              })
             }
             // @ts-ignore
             const users = await fetch(window.location.origin.includes('localhost')
@@ -378,9 +397,10 @@ window.addEventListener('load', () => {
           getData()
         }, []);
 
+        // @ts-ignore
         return (
           <IntlProvider locale="en">
-            {(users) &&
+            {(users && content) &&
                 <ExamplesErrorBoundary>
                     <Wrapper>
                         <Content>
@@ -607,6 +627,9 @@ window.addEventListener('load', () => {
                                       minWait: 10,
                                       maxWait: 25,
                                     }, users))}
+                                    allowTextColor={{
+                                      allowMoreTextColors: true,
+                                    }}
                                     allowLayouts
                                     allowTables={{
                                       advanced: true,
@@ -618,13 +641,17 @@ window.addEventListener('load', () => {
                                       allowHeaderColumn: true,
                                       permittedLayouts: 'all',
                                       stickToolbarToBottom: true,
+                                      allowColumnSorting: true,
+                                      stickyHeaders: true,
+                                      allowCollapse: true,
+                                      // tableCellOptimization: true,
 
 
                                       // allowColumnSorting: true,
                                       // allowAddColumnWithCustomStep: true,
 
 
-                                      // allowCollapse: true,
+
                                       // isHeaderRowRequired: true,
                                       // allowControls: true,
                                       // stickyHeaders: true,
@@ -640,6 +667,10 @@ window.addEventListener('load', () => {
                                       // allowDistributeColumns: true,
 
                                     }}
+                                  allowExpand={{
+                                    allowInsertion: true,
+                                    allowInteractiveExpand: true,
+                                  }}
                                   // taskDecisionProvider={taskDecisionProvider}
                                   // allowTasksAndDecisions
                                     media={{
@@ -647,32 +678,56 @@ window.addEventListener('load', () => {
                                       // provider: mediaProvider,
                                       // useMediaPickerPopup: false,
                                       // allowMediaGroup: true,
-                                      // allowLinking: true,
+                                      allowLinking: true,
                                       // allowBreakoutSnapPoints: true,
                                       // allowRemoteDimensionsFetch: true,
-                                      // fullWidthEnabled: true,
+                                      fullWidthEnabled: true,
                                       // enableDownloadButton: true,
                                       // alignLeftOnInsert: true,
                                       // useForgePlugins: true,
                                       featureFlags: {
                                         captions: true,
                                       },
-                                      allowResizing: true,
+                                      // allowResizing: true,
                                       allowMediaSingle: true,
-                                      allowDropzoneDropLine: true,
+                                      // allowDropzoneDropLine: true,
                                       isCopyPasteEnabled: true,
-                                      allowResizingInTables: true,
+                                      // allowResizingInTables: true,
                                       allowLazyLoading: true,
                                       allowAdvancedToolBarOptions: true,
-                                      allowMediaSingleEditable: true,
-                                      allowMarkingUploadsAsIncomplete: true,
+                                      // allowMediaSingleEditable: true,
+                                      // allowMarkingUploadsAsIncomplete: true,
                                       waitForMediaUpload: true,
-                                      allowAltTextOnImages: true,
+                                      // allowAltTextOnImages: true,
                                     }}
                                     primaryToolbarComponents={
                                       <WithEditorActions
                                         render={actions => (
                                           <div>
+                                            <button
+                                              onClick={async () => {
+                                                await fetch(`https://n.coch.org/document-rooms`)
+                                                  .then((response) => {
+                                                    return response.json();
+                                                  }).then(data => {
+                                                    console.log(data)
+                                                  })
+                                              }}
+                                            >
+                                              Get rooms
+                                            </button>
+                                            <button
+                                              onClick={async () => {
+                                                await fetch(`https://n.coch.org/document-room/delete/${room}`)
+                                                  .then((response) => {
+                                                    return response.json();
+                                                  }).then(data => {
+                                                    console.log(data)
+                                                  })
+                                              }}
+                                            >
+                                              Delete room
+                                            </button>
                                             <button
                                               onClick={async () => {
                                                 let currentContent = await actions.getValue()
@@ -682,36 +737,7 @@ window.addEventListener('load', () => {
                                               Get data
                                             </button>
                                             <button
-                                              onClick={async () => {
-                                                let currentContent = await actions.getValue()
-                                                // @ts-ignore
-                                                let updateDraftURL = document.querySelector("#edit-document-form")?.dataset.updateDraft
-                                                let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
-                                                if (currentContent && updateDraftURL && access_token) {
-
-                                                  let data = {
-                                                    'document': currentContent,
-                                                    '_method': 'PUT'
-                                                  }
-
-                                                  fetch(updateDraftURL, {
-                                                    method: 'POST',
-                                                    headers: {
-                                                      'X-CSRF-TOKEN': access_token,
-                                                      'Content-Type': 'application/json'
-                                                    },
-                                                    body: JSON.stringify(data)
-                                                  })
-                                                    .then(response => response.json())
-                                                    .then(data => {
-                                                      console.log(data)
-                                                    })
-                                                }
-                                              }}
-                                            >
-                                              Save
-                                            </button>
-                                            <button
+                                              id={"ak-publish-document"}
                                               onClick={async () => {
                                                 let currentContent = await actions.getValue()
                                                 // @ts-ignore
@@ -738,6 +764,9 @@ window.addEventListener('load', () => {
 
                                                       if (documentContentWrapper) {
                                                         documentContentWrapper.innerHTML = data.data.document.content
+
+                                                        setExpandEvents()
+
                                                         const documentContentLoad = document.querySelector('.document-content')
 
                                                         // @ts-ignore
