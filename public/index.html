@@ -11,13 +11,42 @@
   <meta name="csrf-token" content="Rapn98cTDaDoihHELdtE70FJDu6O8iMIKdf96W9m">
   <title>React App</title>
 
-<!--  <style>-->
-<!--    #atlassian-editor{-->
-<!--      max-width: 760px;-->
-<!--      margin-left: auto;-->
-<!--      margin-right: auto;-->
-<!--    }-->
-<!--  </style>-->
+  <style>
+    div[extensiontype="embed.video.extension"]{
+      margin-top: 12px!important;
+    }
+    div[extensiontype="embed.video.extension"][layout="wrap-left"]{
+      width: calc(50% - 15px);
+      margin-right: 15px;
+      float: left;
+    }
+    div[extensiontype="embed.video.extension"][layout="wrap-right"]{
+      width: calc(50% - 15px);
+      margin-left: 15px;
+      float: right;
+    }
+
+    div[extensiontype="embed.video.extension"] .with-children.without-frame{
+      padding: 15px;
+    }
+
+    .embed-video-container {
+      position: relative;
+      overflow: hidden;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio (divide 9 by 16 = 0.5625) */
+    }
+
+    .embed-video-iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
 
 </head>
 <body>
@@ -29,6 +58,7 @@
 </form>
 
 <div id="atlassian-editor"></div>
+<pre id="current-data"></pre>
 
 <script>
   window.Laravel = {}

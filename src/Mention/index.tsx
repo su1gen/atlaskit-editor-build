@@ -123,15 +123,12 @@ export class MockMentionResource extends AbstractMentionResource implements Reso
 
     // eslint-disable-next-line class-methods-use-this
     recordMentionSelection(mention: MentionDescription): void {
-        console.log('aloxa3')
         debug(`Record mention selection ${mention.id}`);
     }
 
     resolveMentionName(
         id: string,
     ): Promise<MentionNameDetails> | MentionNameDetails {
-        console.log('aloxa1')
-
         debug('(mock)resolveMentionName', id);
         if (!this.config.mentionNameResolver) {
             return {
