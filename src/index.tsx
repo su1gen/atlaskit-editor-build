@@ -10,12 +10,11 @@ import {keymap} from "prosemirror-keymap";
 window.addEventListener('load', () => {
     // @ts-ignore
     if (window.Laravel.docId) {
-
-
       const ydoc = new Y.Doc()
       // @ts-ignore
       const room = `coch-org-document-${window.Laravel.docId}`
       const provider = new WebsocketProvider('wss://n.coch.org', room, ydoc)
+      // const provider = new WebsocketProvider('ws://localhost:3000', room, ydoc)
       const yXmlFragment = ydoc.get('prosemirror-atlaskit', Y.XmlFragment)
 
       // const room = `coch-org-document-test1`
@@ -62,7 +61,6 @@ window.addEventListener('load', () => {
           }
         }])
       }
-
 
       ReactDOM.render(
         <AtlassianEditor/>, document.getElementById('atlassian-editor')

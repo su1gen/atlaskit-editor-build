@@ -6,31 +6,25 @@ import renderExtensionModule, {EmbedVideoParams} from './extension-handler';
 import {ExtensionModuleActionHandler} from "@atlaskit/editor-common/dist/types/extensions/types/extension-manifest";
 import {youtubeReg} from "../../constants/urls";
 import {ADFEntity} from "@atlaskit/adf-utils/types";
-import {uuid} from "@atlaskit/adf-schema";
-import {TransformAfter, TransformBefore} from "@atlaskit/editor-common/dist/types/extensions/types/extension-handler";
 
-async function defaultUpdate(data: EmbedVideoParams, actions?: ExtensionAPI<EmbedVideoParams>) {
-
-  console.log(data)
-  console.log(actions)
-
-  actions!.editInContextPanel(
-    (parameters: EmbedVideoParams) => {
-      return parameters
-    },
-    async (parameters: EmbedVideoParams) => {
-      let newParams = parameters
-      if (newParams.url){
-        const youtubeMatch = newParams.url.match(youtubeReg);
-        if (youtubeMatch && youtubeMatch[2].length === 11) {
-          newParams.key = youtubeMatch[2];
-          return newParams
-        }
-      }
-      return parameters
-    }
-  );
-}
+// async function defaultUpdate(data: EmbedVideoParams, actions?: ExtensionAPI<EmbedVideoParams>) {
+//   actions!.editInContextPanel(
+//     (parameters: EmbedVideoParams) => {
+//       return parameters
+//     },
+//     async (parameters: EmbedVideoParams) => {
+//       let newParams = parameters
+//       if (newParams.url){
+//         const youtubeMatch = newParams.url.match(youtubeReg);
+//         if (youtubeMatch && youtubeMatch[2].length === 11) {
+//           newParams.key = youtubeMatch[2];
+//           return newParams
+//         }
+//       }
+//       return parameters
+//     }
+//   );
+// }
 
 export const EmbedVideoHandler: ExtensionModuleActionHandler = () => {
 
@@ -80,16 +74,16 @@ const manifest: ExtensionManifest<EmbedVideoParams> = {
       'embed-video-default': {
         type: 'extension',
         render: () => renderExtensionModule,
-        update: defaultUpdate,
-        getFieldsDefinition: () =>
-          Promise.resolve([
-            {
-              name: 'url',
-              label: 'Video url',
-              isRequired: true,
-              type: 'string',
-            },
-          ]),
+        // update: defaultUpdate,
+        // getFieldsDefinition: () =>
+        //   Promise.resolve([
+        //     {
+        //       name: 'url',
+        //       label: 'Video url',
+        //       isRequired: true,
+        //       type: 'string',
+        //     },
+        //   ]),
       },
     },
     contextualToolbars: [

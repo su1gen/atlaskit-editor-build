@@ -105,189 +105,159 @@ export default class AtlassianEditor extends React.Component<any, any> {
   }
 
   render() {
-    console.log(this.state)
-    return (
-      <IntlProvider locale="en">
-        <Editor
-          appearance="full-page"
+    if (!this.state.contentLoaded || !this.state.usersLoaded) {
+      return <h2>Loading...</h2>;
+    }
+    if (this.state.contentLoaded && this.state.usersLoaded) {
+      return (
+        <IntlProvider locale="en">
+          <Editor
+            appearance="full-page"
 
-          extensionProviders={() => [
-            getExtensionProviders(),
-          ]}
-          //@ts-ignore
-          insertMenuItems={customInsertMenuItems}
-          allowExtension={{
-            allowAutoSave: true,
-            allowExtendFloatingToolbars: true,
-          }}
+            extensionProviders={() => [
+              getExtensionProviders(),
+            ]}
+            //@ts-ignore
+            insertMenuItems={customInsertMenuItems}
+            allowExtension={{
+              allowAutoSave: true,
+              allowExtendFloatingToolbars: true,
+            }}
 
-          defaultValue={this.state.content}
-          placeholder='Write something...'
+            defaultValue={this.state.content}
+            placeholder='Write something...'
 
-          mentionProvider={Promise.resolve(new MockMentionResource({
-            minWait: 10,
-            maxWait: 25,
-          }, this.state.users))}
+            mentionProvider={Promise.resolve(new MockMentionResource({
+              minWait: 10,
+              maxWait: 25,
+            }, this.state.users))}
 
-          waitForMediaUpload={true}
-          allowTextColor={{
-            allowMoreTextColors: true,
-          }}
-          allowLayouts={true}
-          allowTables={{
-            advanced: true,
-            allowColumnResizing: true,
-            allowMergeCells: true,
-            allowNumberColumn: true,
-            allowBackgroundColor: true,
-            allowHeaderRow: true,
-            allowHeaderColumn: true,
-            permittedLayouts: 'all',
-            stickToolbarToBottom: true,
-            allowColumnSorting: true,
-            stickyHeaders: true,
-            allowCollapse: true,
-            // tableCellOptimization: true,
-
-
-            // allowColumnSorting: true,
-            // allowAddColumnWithCustomStep: true,
-
-
-            // isHeaderRowRequired: true,
-            // allowControls: true,
-            // stickyHeaders: true,
+            waitForMediaUpload={true}
+            allowTextColor={{
+              allowMoreTextColors: true,
+            }}
+            allowLayouts={true}
+            allowTables={{
+              advanced: true,
+              allowColumnResizing: true,
+              allowMergeCells: true,
+              allowNumberColumn: true,
+              allowBackgroundColor: true,
+              allowHeaderRow: true,
+              allowHeaderColumn: true,
+              permittedLayouts: 'all',
+              stickToolbarToBottom: true,
+              allowColumnSorting: true,
+              stickyHeaders: true,
+              allowCollapse: true,
+              // tableCellOptimization: true,
 
 
-            // allowCellOptionsInFloatingToolbar: true,
-            // tableCellOptimization: true,
-            // tableRenderOptimization: true,
-            // stickyHeadersOptimization: true,
-            // initialRenderOptimization: true,
-            // mouseMoveOptimization: true,
-            // tableOverflowShadowsOptimization: true,
-            // allowDistributeColumns: true,
+              // allowColumnSorting: true,
+              // allowAddColumnWithCustomStep: true,
 
-          }}
-          allowExpand={{
-            allowInsertion: true,
-            allowInteractiveExpand: true,
-          }}
-          // taskDecisionProvider={taskDecisionProvider}
-          // allowTasksAndDecisions
-          media={{
-            // @ts-ignore
-            // provider: mediaProvider,
-            // useMediaPickerPopup: false,
-            // allowMediaGroup: true,
-            allowLinking: true,
-            // allowBreakoutSnapPoints: true,
-            // allowRemoteDimensionsFetch: true,
-            fullWidthEnabled: true,
-            // enableDownloadButton: true,
-            // alignLeftOnInsert: true,
-            // useForgePlugins: true,
-            featureFlags: {
-              captions: true,
-            },
-            // allowResizing: true,
-            allowMediaSingle: true,
-            // allowDropzoneDropLine: true,
-            isCopyPasteEnabled: true,
-            // allowResizingInTables: true,
-            allowLazyLoading: true,
-            allowAdvancedToolBarOptions: true,
-            // allowMediaSingleEditable: true,
-            // allowMarkingUploadsAsIncomplete: true,
-            waitForMediaUpload: true,
-            // allowAltTextOnImages: true,
-          }}
-          primaryToolbarComponents={
-            <WithEditorActions
-              render={actions => (
-                <div>
-                  <button
-                    onClick={async () => {
-                      await fetch(`https://n.coch.org/document-rooms`)
-                        .then((response) => {
-                          return response.json();
-                        }).then(data => {
-                          console.log(data)
-                        })
-                    }}
-                  >
-                    Get rooms
-                  </button>
+
+              // isHeaderRowRequired: true,
+              // allowControls: true,
+              // stickyHeaders: true,
+
+
+              // allowCellOptionsInFloatingToolbar: true,
+              // tableCellOptimization: true,
+              // tableRenderOptimization: true,
+              // stickyHeadersOptimization: true,
+              // initialRenderOptimization: true,
+              // mouseMoveOptimization: true,
+              // tableOverflowShadowsOptimization: true,
+              // allowDistributeColumns: true,
+
+            }}
+            allowExpand={{
+              allowInsertion: true,
+              allowInteractiveExpand: true,
+            }}
+            // taskDecisionProvider={taskDecisionProvider}
+            // allowTasksAndDecisions
+            media={{
+              // @ts-ignore
+              // provider: mediaProvider,
+              // useMediaPickerPopup: false,
+              // allowMediaGroup: true,
+              allowLinking: true,
+              // allowBreakoutSnapPoints: true,
+              // allowRemoteDimensionsFetch: true,
+              fullWidthEnabled: true,
+              // enableDownloadButton: true,
+              // alignLeftOnInsert: true,
+              // useForgePlugins: true,
+              featureFlags: {
+                captions: true,
+              },
+              // allowResizing: true,
+              allowMediaSingle: true,
+              // allowDropzoneDropLine: true,
+              isCopyPasteEnabled: true,
+              // allowResizingInTables: true,
+              allowLazyLoading: true,
+              allowAdvancedToolBarOptions: true,
+              // allowMediaSingleEditable: true,
+              // allowMarkingUploadsAsIncomplete: true,
+              waitForMediaUpload: true,
+              // allowAltTextOnImages: true,
+            }}
+            primaryToolbarComponents={
+              <WithEditorActions
+                render={actions => (
                   <div>
-                    <input id={"roomId"}/>
                     <button
+                      id={"ak-publish-document"}
                       onClick={async () => {
-                        //@ts-ignore
-                        // const room = `coch-org-document-${window.Laravel.docId}`
-                        //@ts-ignore
-                        const room = document.querySelector("#roomId")?.value
-                        if (room){
-                          await fetch(`https://n.coch.org/document-room/delete/coch-org-document-${room}`)
-                            .then((response) => {
-                              return response.json();
-                            }).then(data => {
-                              console.log(data)
+                        let currentContent = await actions.getValue()
+                        // @ts-ignore
+                        let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
+                        let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                        if (currentContent && updateContentURL && access_token) {
+
+                          let data = {
+                            'document': currentContent,
+                            '_method': 'PUT'
+                          }
+
+                          fetch(updateContentURL, {
+                            method: 'POST',
+                            headers: {
+                              'X-CSRF-TOKEN': access_token,
+                              'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(data)
+                          })
+                            .then(response => response.json())
+                            .then(data => {
+                              let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
+
+                              if (documentContentWrapper) {
+                                documentContentWrapper.innerHTML = data.data.document.content
+
+                                setExpandEvents()
+
+                                const documentContentLoad = document.querySelector('.document-content')
+
+                                // @ts-ignore
+                                documentContentLoad.classList.toggle('show-draft')
+                              }
                             })
                         }
                       }}
                     >
-                      Delete room
+                      Publish
                     </button>
                   </div>
-
-                  <button
-                    id={"ak-publish-document"}
-                    onClick={async () => {
-                      let currentContent = await actions.getValue()
-                      // @ts-ignore
-                      let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
-                      let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
-                      if (currentContent && updateContentURL && access_token) {
-
-                        let data = {
-                          'document': currentContent,
-                          '_method': 'PUT'
-                        }
-
-                        fetch(updateContentURL, {
-                          method: 'POST',
-                          headers: {
-                            'X-CSRF-TOKEN': access_token,
-                            'Content-Type': 'application/json'
-                          },
-                          body: JSON.stringify(data)
-                        })
-                          .then(response => response.json())
-                          .then(data => {
-                            let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
-
-                            if (documentContentWrapper) {
-                              documentContentWrapper.innerHTML = data.data.document.content
-
-                              setExpandEvents()
-
-                              const documentContentLoad = document.querySelector('.document-content')
-
-                              // @ts-ignore
-                              documentContentLoad.classList.toggle('show-draft')
-                            }
-                          })
-                      }
-                    }}
-                  >
-                    Publish
-                  </button>
-                </div>
-              )}
-            />
-          }
-        />
-      </IntlProvider>
-    );
+                )}
+              />
+            }
+          />
+        </IntlProvider>
+      );
+    }
   }
 }
