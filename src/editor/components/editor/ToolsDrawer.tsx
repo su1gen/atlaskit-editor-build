@@ -8,7 +8,7 @@ import { JSONTransformer } from "@atlaskit/editor-json-transformer";
 
 import { ImageUploadProvider as ImageUploadHandler } from "@atlaskit/editor-common/provider-factory";
 import { EditorView } from "prosemirror-view";
-import FileInput from "../FileInput";
+import FileInput from "../../extensions/components/FileInput";
 import PreWrapDiv from "../common/PreWrapDiv";
 import { jsonPretty } from "../../utils/string";
 import { EditorProps } from "./Editor";

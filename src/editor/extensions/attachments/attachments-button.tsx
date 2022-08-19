@@ -13,6 +13,7 @@ const attachmentsButton = {
     onClick: (editorActions: any) => {
 
         const newParameters: AttachmentsParams = {} as AttachmentsParams;
+        newParameters.items = []
 
         editorActions.replaceSelection({
             type: "extension",
@@ -21,7 +22,7 @@ const attachmentsButton = {
                 extensionKey: "attachments:attachments-default",
                 text: "Attachments",
                 parameters: newParameters
-            }
+            },
         });
     }
 }

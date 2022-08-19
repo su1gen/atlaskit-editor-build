@@ -10,6 +10,7 @@
     "react-dom": "^16.14.0",
     "react-intl-next": "npm:react-intl@^5.18.1",
     "styled-components": "^3.2.6",
+    "uuid": "^8.3.2",
     "y-prosemirror": "^1.1.2",
     "y-websocket": "^1.4.3",
     "yjs": "^13.5.41"

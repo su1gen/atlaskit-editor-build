@@ -62,6 +62,10 @@ export default class AtlassianEditor extends React.Component<any, any> {
                       // @ts-ignore
                       content: JSON.parse(draftData.document.content),
                     })
+                  }  else {
+                    this.setState({
+                      contentLoaded: true,
+                    })
                   }
                 })
             }
@@ -75,9 +79,9 @@ export default class AtlassianEditor extends React.Component<any, any> {
   }
 
   getUsers() {
-    // @ts-ignore
+    //@ts-ignore
     fetch(window.location.origin.includes('localhost')
-      ? 'https://cochorg.wn.staj.fun/users' : `${window.location.origin}/users`)
+      ? 'https://coch.it-horov.tech/users' : `${window.location.origin}/users`)
       .then(res => {
         return res.json()
       })
@@ -97,6 +101,10 @@ export default class AtlassianEditor extends React.Component<any, any> {
           users: usersArray,
         })
       })
+    // this.setState({
+    //   usersLoaded: true,
+    //   users: [],
+    // })
   }
 
   componentDidMount() {
@@ -209,6 +217,18 @@ export default class AtlassianEditor extends React.Component<any, any> {
               <WithEditorActions
                 render={actions => (
                   <div>
+                    <button
+                      onClick={async () => {
+                        let currentContent = await actions.getValue()
+                        console.log(currentContent)
+                        let currentDataElement = document.querySelector("#current-data")
+                        if (currentDataElement){
+                          currentDataElement.innerHTML = JSON.stringify(currentContent, null, 4)
+                        }
+                      }
+                      }>
+                    Get data
+                    </button>
                     <button
                       id={"ak-publish-document"}
                       onClick={async () => {

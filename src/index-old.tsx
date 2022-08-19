@@ -125,7 +125,7 @@ const sendAndInsertImage = (editorActions: any, uploadURL: string, access_token:
               "type": "external",
               "url": `${data.url}#media-blob-url=true&id=87bcf0a2-a269-4038-8834-65f4bd6e5a9e&collection=contentId-65651&contextId=65651&mimeType=image%2Fjpeg&name=(89).jpg&size=256698&width=${newWidth}&height=${newHeight}&alt=`,
               // "collection": "MediaServicesSample",
-              // "name": "(89).jpg",
+              // "name": "1.jpg",
               "width": newWidth,
               "height": newHeight,
             }
