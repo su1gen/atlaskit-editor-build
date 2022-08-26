@@ -1,12 +1,9 @@
 import {ExtensionAPI, ExtensionManifest} from '@atlaskit/editor-common/extensions';
-import renderExtensionModule, {AttachmentsParams} from './extension-handler';
+import renderExtensionModule, {AttachmentsItem, AttachmentsParams} from './extension-handler';
 import {ExtensionModuleActionHandler} from "@atlaskit/editor-common/dist/types/extensions/types/extension-manifest";
 import {ADFEntity} from "@atlaskit/adf-utils/types";
 // @ts-ignore
 import {v4 as uuidv4} from 'uuid';
-
-import DownloadIcon from "@atlaskit/icon/svgs/download.svg";
-import UploadIcon from "@atlaskit/icon/svgs/upload.svg";
 
 export const AttachmentsHandler: ExtensionModuleActionHandler = () => {
 
@@ -24,15 +21,66 @@ export const AttachmentsHandler: ExtensionModuleActionHandler = () => {
   })
 }
 
-const downloadFile = (url: string) => {
-  const a = document.createElement('a')
-  a.href = url
-  // @ts-ignore
-  a.download = url.split('/').pop()
-  console.log(a)
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
+const downloadFile = (attachmentUrl: string, attachmentItems: Array<AttachmentsItem> | undefined, attachmentId: string) => {
+  if (attachmentItems) {
+
+    let attachmentFullUrl = attachmentUrl + '?'
+
+    attachmentItems.forEach(item => {
+      attachmentFullUrl += `attachmentPaths[]=${item.fileStoragePath}&attachmentFileNames[]=${item.fileName}&`
+    })
+
+    attachmentFullUrl += `attachmentId=${attachmentId}`
+
+    const a = document.createElement('a')
+    a.style.display = "none"
+    a.href = attachmentFullUrl
+    // @ts-ignore
+    a.download = attachmentUrl.split('/').pop()
+    console.log(a)
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+
+
+    // fetch(attachmentUrl)
+
+    // let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+    // const formData = new FormData();
+    //
+    // let oldAttachments = []
+    //
+    // for (const item of attachmentItems) {
+    //   oldAttachments.push({
+    //     "fileName": item.fileName,
+    //     "fileStoragePath": item.fileStoragePath
+    //   })
+    // }
+    //
+    // // @ts-ignore
+    // formData.append("_token", access_token);
+    // formData.append("attachmentId", attachmentId);
+    // formData.append('attachments', JSON.stringify(oldAttachments))
+    //
+    //
+    // fetch(attachmentUrl, {
+    //   method: 'POST',
+    //   body: formData
+    // }).then(response => response.json())
+    //   .then(data => {
+    //     if (data.archivePath) {
+    //       const a = document.createElement('a')
+    // a.style.display = "none"
+    //       a.href = data.archivePath
+    //       // @ts-ignore
+    //       a.download = data.archivePath.split('/').pop()
+    //       console.log(a)
+    //       document.body.appendChild(a)
+    //       a.click()
+    //       document.body.removeChild(a)
+    //     }
+    //   })
+  }
 }
 
 
@@ -84,8 +132,8 @@ const manifest: ExtensionManifest<AttachmentsParams> = {
               let attachmentsUrl = document.querySelector("#edit-document-form")?.dataset?.atlaskitDownloadAttachments
               // @ts-ignore
               if (attachmentsUrl && localId) {
-                console.log(attachmentsUrl + `?attachmentId=${localId}`)
-                downloadFile(attachmentsUrl + `?attachmentId=${localId}`)
+                // console.log(attachmentsUrl + `?attachmentId=${localId}`)
+                downloadFile(attachmentsUrl, adf.attrs?.parameters?.items, localId)
               }
             },
           },
@@ -95,7 +143,7 @@ const manifest: ExtensionManifest<AttachmentsParams> = {
             label: 'Upload files',
             tooltip: 'Upload files',
             icon: () =>
-                import('@atlaskit/icon/glyph/arrow-up').then((mod) => mod.default),
+              import('@atlaskit/icon/glyph/arrow-up').then((mod) => mod.default),
             action: async (adf: ADFEntity, api: ExtensionAPI) => {
               const localId: string = adf.attrs?.localId || '';
 
@@ -119,8 +167,13 @@ const manifest: ExtensionManifest<AttachmentsParams> = {
                 // @ts-ignore
                 let attachmentsUrl = document.querySelector("#edit-document-form")?.dataset?.atlaskitUploadAttachments
                 let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                let roller = document.querySelector(`.attachments__container[data-attachment-local-id="${localId}"] .lds-roller`)
+
                 // @ts-ignore
                 if (inputElement.files && attachmentsUrl && access_token) {
+                  if (roller) {
+                    roller.classList.remove('hide')
+                  }
                   const formData = new FormData();
                   const newLocalId = "myID-" + uuidv4();
                   // @ts-ignore
@@ -137,7 +190,7 @@ const manifest: ExtensionManifest<AttachmentsParams> = {
                   let oldAttachments = []
 
                   let currentAttachments = adf.attrs?.parameters?.items;
-                  if (currentAttachments){
+                  if (currentAttachments) {
                     for (const item of currentAttachments) {
                       oldAttachments.push({
                         "fileName": item.fileName,
@@ -163,15 +216,17 @@ const manifest: ExtensionManifest<AttachmentsParams> = {
                               filePath: file.filePath,
                               fileStoragePath: file.fileStoragePath,
                               fileUploadedAt: file.fileUploadedAt,
-                              fileOwner: file.fileOwner
+                              fileOwner: file.fileOwner,
+                              fileType: file.fileType,
                             })
                           })
 
                           // @ts-ignore
                           let newParams: AttachmentsParams = JSON.parse(JSON.stringify(attrs.parameters))
                           newParams.currentLocalId = newLocalId
-
-                          console.log(111, adf, attrs, newParams)
+                          if (roller) {
+                            roller.classList.add('hide')
+                          }
 
                           return {
                             attrs: {

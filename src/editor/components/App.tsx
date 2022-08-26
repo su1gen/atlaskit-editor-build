@@ -21,6 +21,38 @@ const setExpandEvents = () => {
   }
 }
 
+const setDownloadAttachmentsEvents = () => {
+  let attachmentItems = document.querySelectorAll('.document-content-public .attachments__container[extensiontype="attachments.extension"]')
+  if (attachmentItems) {
+    attachmentItems.forEach(item => {
+      let downloadButton = item.querySelector('.attachment-toolbar__button')
+      if (downloadButton) {
+        downloadButton.addEventListener('click', () => {
+          // @ts-ignore
+          let attachmentUrl = document.querySelector("#edit-document-form")?.dataset?.atlaskitDownloadAttachments
+          let attachmentFullUrl = attachmentUrl + '?'
+          let attachments = item.querySelectorAll('.attachment-row')
+          if (attachments.length && attachmentUrl){
+            attachments.forEach(attachment => {
+              // @ts-ignore
+              attachmentFullUrl += `attachmentPaths[]=${attachment.dataset.fileStoragePath}&attachmentFileNames[]=${attachment.dataset.fileName}&`
+            })
+
+            const a = document.createElement('a')
+            a.style.display = "none"
+            a.href = attachmentFullUrl
+            // @ts-ignore
+            a.download = attachmentUrl.split('/').pop()
+            document.body.appendChild(a)
+            a.click()
+            document.body.removeChild(a)
+          }
+        })
+      }
+    })
+  }
+}
+
 
 export default class AtlassianEditor extends React.Component<any, any> {
   constructor(props: any) {
@@ -80,8 +112,7 @@ export default class AtlassianEditor extends React.Component<any, any> {
 
   getUsers() {
     //@ts-ignore
-    fetch(window.location.origin.includes('localhost')
-      ? 'https://coch.it-horov.tech/users' : `${window.location.origin}/users`)
+    fetch(`${window.location.origin}/users`)
       .then(res => {
         return res.json()
       })
@@ -259,6 +290,7 @@ export default class AtlassianEditor extends React.Component<any, any> {
                                 documentContentWrapper.innerHTML = data.data.document.content
 
                                 setExpandEvents()
+                                setDownloadAttachmentsEvents()
 
                                 const documentContentLoad = document.querySelector('.document-content')
 
