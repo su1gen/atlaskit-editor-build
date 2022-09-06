@@ -1,11 +1,12 @@
 import * as React from "react";
-import {Editor, WithEditorActions} from "@atlaskit/editor-core";
+import {Editor, EditorActions, WithEditorActions} from "@atlaskit/editor-core";
 // import {getExtensionProviders} from "../extensions/get-extensions-provider";
 // import customInsertMenuItems from "../extensions/menu-items";
 import {IntlProvider} from "react-intl-next";
 import {MockMentionResource} from "../../Mention";
 import {getExtensionProviders} from "../extensions/get-extensions-provider";
 import customInsertMenuItems from "../extensions/menu-items";
+import {EditorView} from "prosemirror-view";
 
 const setExpandEvents = () => {
   let expandItems = document.querySelectorAll('.document-content-public .ak-editor-expand')
@@ -175,7 +176,12 @@ export default class AtlassianEditor extends React.Component<any, any> {
             allowTextColor={{
               allowMoreTextColors: true,
             }}
-            allowLayouts={true}
+            allowLayouts={{
+              allowBreakout: false,
+              // useLongPressSelection: false,
+              UNSAFE_allowSingleColumnLayout: true,
+              UNSAFE_addSidebarLayouts: true,
+            }}
             allowTables={{
               advanced: true,
               allowColumnResizing: true,
@@ -189,64 +195,28 @@ export default class AtlassianEditor extends React.Component<any, any> {
               allowColumnSorting: true,
               stickyHeaders: true,
               allowCollapse: true,
-              // tableCellOptimization: true,
-
-
-              // allowColumnSorting: true,
-              // allowAddColumnWithCustomStep: true,
-
-
-              // isHeaderRowRequired: true,
-              // allowControls: true,
-              // stickyHeaders: true,
-
-
-              // allowCellOptionsInFloatingToolbar: true,
-              // tableCellOptimization: true,
-              // tableRenderOptimization: true,
-              // stickyHeadersOptimization: true,
-              // initialRenderOptimization: true,
-              // mouseMoveOptimization: true,
-              // tableOverflowShadowsOptimization: true,
-              // allowDistributeColumns: true,
-
             }}
             allowExpand={{
               allowInsertion: true,
               allowInteractiveExpand: true,
             }}
-            // taskDecisionProvider={taskDecisionProvider}
-            // allowTasksAndDecisions
+            shouldFocus={true}
             media={{
-              // @ts-ignore
-              // provider: mediaProvider,
-              // useMediaPickerPopup: false,
-              // allowMediaGroup: true,
               allowLinking: true,
-              // allowBreakoutSnapPoints: true,
-              // allowRemoteDimensionsFetch: true,
               fullWidthEnabled: true,
-              // enableDownloadButton: true,
-              // alignLeftOnInsert: true,
-              // useForgePlugins: true,
               featureFlags: {
                 captions: true,
               },
-              // allowResizing: true,
               allowMediaSingle: true,
-              // allowDropzoneDropLine: true,
               isCopyPasteEnabled: true,
-              // allowResizingInTables: true,
               allowLazyLoading: true,
               allowAdvancedToolBarOptions: true,
-              // allowMediaSingleEditable: true,
-              // allowMarkingUploadsAsIncomplete: true,
               waitForMediaUpload: true,
               // allowAltTextOnImages: true,
             }}
             primaryToolbarComponents={
               <WithEditorActions
-                render={actions => (
+                render={(actions: EditorActions) => (
                   <div>
                     <button
                       onClick={async () => {
@@ -307,6 +277,9 @@ export default class AtlassianEditor extends React.Component<any, any> {
                 )}
               />
             }
+            onChange={(editorView: EditorView, meta) => {
+              console.log(editorView, meta)
+            }}
           />
         </IntlProvider>
       );
