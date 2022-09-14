@@ -6,6 +6,7 @@ import {WebsocketProvider} from "y-websocket";
 import {BaseReactEditorView} from "@atlaskit/editor-core";
 import {redo, undo, yCursorPlugin, ySyncPlugin, yUndoPlugin} from "y-prosemirror";
 import {keymap} from "prosemirror-keymap";
+import {selectionTooltipPlugin} from "./editor/pm-plugins/selection-tooltip";
 
 window.addEventListener('load', () => {
     // @ts-ignore
@@ -30,36 +31,49 @@ window.addEventListener('load', () => {
       const originalGetPlugins = BaseReactEditorView.prototype.getPlugins
       BaseReactEditorView.prototype.getPlugins = function () {
         // @ts-ignore
-        return originalGetPlugins.apply(this, arguments).concat([{
-          name: 'yjs-plugin',
-          // @ts-ignore
-          pmPlugins: function () {
-            return [
-              {
-                name: 'y-shared-content',
-                plugin: function (_a) {
-                  // @ts-ignore
-                  return ySyncPlugin(yXmlFragment)
+        return originalGetPlugins.apply(this, arguments).concat([
+          {
+            name: 'yjs-plugin',
+            // @ts-ignore
+            pmPlugins: function () {
+              return [
+                {
+                  name: 'y-shared-content',
+                  plugin: function (_a) {
+                    // @ts-ignore
+                    return ySyncPlugin(yXmlFragment)
+                  }
+                }, {
+                  name: 'y-shared-cursors',
+                  plugin: function (_a) {
+                    return yCursorPlugin(provider.awareness)
+                  }
+                }, {
+                  name: 'y-undo-plugin',
+                  plugin: yUndoPlugin
+                }, {
+                  name: 'y-undo-keymaps',
+                  plugin: () => keymap({
+                    'Mod-z': undo,
+                    'Mod-y': redo,
+                    'Mod-Shift-z': redo
+                  })
                 }
-              }, {
-                name: 'y-shared-cursors',
-                plugin: function (_a) {
-                  return yCursorPlugin(provider.awareness)
-                }
-              }, {
-                name: 'y-undo-plugin',
-                plugin: yUndoPlugin
-              }, {
-                name: 'y-undo-keymaps',
-                plugin: () => keymap({
-                  'Mod-z': undo,
-                  'Mod-y': redo,
-                  'Mod-Shift-z': redo
-                })
-              }
-            ]
+              ]
+            }
+          },
+          {
+            name: 'custom-plugin',
+            pmPlugins() {
+              return [
+                {
+                  name: 'selectionPlugin',
+                  plugin: () => selectionTooltipPlugin,
+                },
+              ];
+            }
           }
-        }])
+          ])
       }
 
       ReactDOM.render(

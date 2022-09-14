@@ -1,12 +1,21 @@
 import * as React from "react";
 import {Editor, EditorActions, WithEditorActions} from "@atlaskit/editor-core";
-// import {getExtensionProviders} from "../extensions/get-extensions-provider";
-// import customInsertMenuItems from "../extensions/menu-items";
 import {IntlProvider} from "react-intl-next";
 import {MockMentionResource} from "../../Mention";
 import {getExtensionProviders} from "../extensions/get-extensions-provider";
 import customInsertMenuItems from "../extensions/menu-items";
-import {EditorView} from "prosemirror-view";
+
+
+const wrapper: any = {
+  boxSizing: 'border-box',
+  height: '100%',
+};
+
+const content: any = {
+  padding: 0,
+  height: '100%',
+  boxSizing: 'border-box',
+};
 
 const setExpandEvents = () => {
   let expandItems = document.querySelectorAll('.document-content-public .ak-editor-expand')
@@ -151,6 +160,8 @@ export default class AtlassianEditor extends React.Component<any, any> {
     if (this.state.contentLoaded && this.state.usersLoaded) {
       return (
         <IntlProvider locale="en">
+          <div style={wrapper}>
+            <div style={content}>
           <Editor
             appearance="full-page"
 
@@ -178,7 +189,7 @@ export default class AtlassianEditor extends React.Component<any, any> {
             }}
             allowLayouts={{
               allowBreakout: false,
-              // useLongPressSelection: false,
+              useLongPressSelection: false,
               UNSAFE_allowSingleColumnLayout: true,
               UNSAFE_addSidebarLayouts: true,
             }}
@@ -277,10 +288,12 @@ export default class AtlassianEditor extends React.Component<any, any> {
                 )}
               />
             }
-            onChange={(editorView: EditorView, meta) => {
-              console.log(editorView, meta)
-            }}
+            // onChange={(editorView: EditorView, meta) => {
+            //   console.log(editorView, meta)
+            // }}
           />
+            </div>
+          </div>
         </IntlProvider>
       );
     }

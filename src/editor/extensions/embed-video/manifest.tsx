@@ -6,25 +6,7 @@ import renderExtensionModule, {EmbedVideoParams} from './extension-handler';
 import {ExtensionModuleActionHandler} from "@atlaskit/editor-common/dist/types/extensions/types/extension-manifest";
 import {youtubeReg} from "../../constants/urls";
 import {ADFEntity} from "@atlaskit/adf-utils/types";
-
-// async function defaultUpdate(data: EmbedVideoParams, actions?: ExtensionAPI<EmbedVideoParams>) {
-//   actions!.editInContextPanel(
-//     (parameters: EmbedVideoParams) => {
-//       return parameters
-//     },
-//     async (parameters: EmbedVideoParams) => {
-//       let newParams = parameters
-//       if (newParams.url){
-//         const youtubeMatch = newParams.url.match(youtubeReg);
-//         if (youtubeMatch && youtubeMatch[2].length === 11) {
-//           newParams.key = youtubeMatch[2];
-//           return newParams
-//         }
-//       }
-//       return parameters
-//     }
-//   );
-// }
+import './embed-video-styles.css'
 
 export const EmbedVideoHandler: ExtensionModuleActionHandler = () => {
 

@@ -7,6 +7,7 @@ import {ExtensionModuleActionHandler} from "@atlaskit/editor-common/dist/types/e
 import {ADFEntity} from "@atlaskit/adf-utils/types";
 // @ts-ignore
 import {v4 as uuidv4} from 'uuid';
+import './attachments-styles.css'
 
 export const AttachmentsHandler: ExtensionModuleActionHandler = () => {
   const newParameters: AttachmentsParams = {} as AttachmentsParams;
