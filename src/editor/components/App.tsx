@@ -1,10 +1,12 @@
 import * as React from "react";
-import {Editor, EditorActions, WithEditorActions} from "@atlaskit/editor-core";
+import {AnnotationUpdateEmitter, Editor, EditorActions, WithEditorActions} from "@atlaskit/editor-core";
 import {IntlProvider} from "react-intl-next";
 import {MockMentionResource} from "../../Mention";
 import {getExtensionProviders} from "../extensions/get-extensions-provider";
 import customInsertMenuItems from "../extensions/menu-items";
-
+import {CreateCommentView} from "./annotations/create";
+import {ShowCommentView} from "./annotations/show";
+import {AnnotationTypes} from '@atlaskit/adf-schema';
 
 const wrapper: any = {
   boxSizing: 'border-box',
@@ -16,6 +18,22 @@ const content: any = {
   height: '100%',
   boxSizing: 'border-box',
 };
+
+type Annotation = {
+  id: string,
+  isResolved: boolean
+}
+
+type AtlassianEditorState = {
+  contentLoaded: boolean,
+  usersLoaded: boolean,
+  annotationsLoaded: boolean,
+  content: any,
+  users: any,
+  annotations: Annotation[],
+}
+
+export let annotationsList: string[] = []
 
 const setExpandEvents = () => {
   let expandItems = document.querySelectorAll('.document-content-public .ak-editor-expand')
@@ -42,7 +60,7 @@ const setDownloadAttachmentsEvents = () => {
           let attachmentUrl = document.querySelector("#edit-document-form")?.dataset?.atlaskitDownloadAttachments
           let attachmentFullUrl = attachmentUrl + '?'
           let attachments = item.querySelectorAll('.attachment-row')
-          if (attachments.length && attachmentUrl){
+          if (attachments.length && attachmentUrl) {
             attachments.forEach(attachment => {
               // @ts-ignore
               attachmentFullUrl += `attachmentPaths[]=${attachment.dataset.fileStoragePath}&attachmentFileNames[]=${attachment.dataset.fileName}&`
@@ -63,16 +81,20 @@ const setDownloadAttachmentsEvents = () => {
   }
 }
 
+export default class AtlassianEditor extends React.Component<any, AtlassianEditorState> {
 
-export default class AtlassianEditor extends React.Component<any, any> {
+  private updateAnnotationSubscriber = new AnnotationUpdateEmitter();
+
   constructor(props: any) {
     super(props);
 
     this.state = {
       contentLoaded: false,
       usersLoaded: false,
+      annotationsLoaded: false,
       content: undefined,
-      users: []
+      users: [],
+      annotations: [],
     };
   }
 
@@ -80,6 +102,7 @@ export default class AtlassianEditor extends React.Component<any, any> {
     //@ts-ignore
     const room = `coch-org-document-${window.Laravel.docId}`
 
+    // fetch(`https://n.coch.org/document-room/${room}`)
     fetch(`https://n.coch.org/document-room/${room}`)
       .then((response) => {
         return response.json();
@@ -104,7 +127,7 @@ export default class AtlassianEditor extends React.Component<any, any> {
                       // @ts-ignore
                       content: JSON.parse(draftData.document.content),
                     })
-                  }  else {
+                  } else {
                     this.setState({
                       contentLoaded: true,
                     })
@@ -142,156 +165,212 @@ export default class AtlassianEditor extends React.Component<any, any> {
           users: usersArray,
         })
       })
-    // this.setState({
-    //   usersLoaded: true,
-    //   users: [],
-    // })
+  }
+
+  getAnnotationsState = async (annotationsIds: string[]) => {
+    return []
+  };
+
+  getAnnotations() {
+    let getAllAnnotationsUrl = (document.querySelector('#edit-document-form') as HTMLElement)?.dataset?.atlaskitGetAllAnnotations
+    if (getAllAnnotationsUrl) {
+      fetch(getAllAnnotationsUrl)
+        .then(response => response.json())
+        .then(data => {
+          this.setState({
+            annotations: data,
+            annotationsLoaded: true,
+          })
+        });
+    }
   }
 
   componentDidMount() {
     this.getContent()
     this.getUsers()
+    this.getAnnotations()
   }
 
   render() {
-    if (!this.state.contentLoaded || !this.state.usersLoaded) {
+    if (!this.state.contentLoaded || !this.state.usersLoaded || !this.state.annotationsLoaded) {
       return <h2>Loading...</h2>;
     }
-    if (this.state.contentLoaded && this.state.usersLoaded) {
+    if (this.state.contentLoaded && this.state.usersLoaded && this.state.annotationsLoaded) {
       return (
         <IntlProvider locale="en">
           <div style={wrapper}>
             <div style={content}>
-          <Editor
-            appearance="full-page"
+              <Editor
+                onEditorReady={() => {
+                  if (this.state.annotations.length > 0){
+                    this.state.annotations.forEach((annotation: Annotation) => {
+                      this.updateAnnotationSubscriber.emit('create', annotation.id)
+                      annotationsList.push(annotation.id)
+                    })
+                  }
+                }}
+                onChange={() => {
+                  let annotations = document.querySelectorAll('.akEditor .annotationView-content-wrap')
+                  annotations.forEach(annotationItem => {
+                    let annotationId = annotationItem.getAttribute('id')!
+                    if (!annotationsList.includes(annotationId)){
+                      annotationsList.push(annotationId)
+                      this.updateAnnotationSubscriber.emit('create', annotationId)
+                    }
+                  })
+                }}
+                appearance="full-page"
+                extensionProviders={() => [
+                  getExtensionProviders(),
+                ]}
+                //@ts-ignore
+                insertMenuItems={customInsertMenuItems}
+                allowExtension={{
+                  allowAutoSave: true,
+                  allowExtendFloatingToolbars: true,
+                }}
 
-            extensionProviders={() => [
-              getExtensionProviders(),
-            ]}
-            //@ts-ignore
-            insertMenuItems={customInsertMenuItems}
-            allowExtension={{
-              allowAutoSave: true,
-              allowExtendFloatingToolbars: true,
-            }}
+                defaultValue={this.state.content}
+                placeholder='Write something...'
 
-            defaultValue={this.state.content}
-            placeholder='Write something...'
+                annotationProviders={{
+                  inlineComment: {
+                    isToolbarAbove: true,
+                    createComponent: CreateCommentView,
+                    viewComponent: ShowCommentView,
+                    updateSubscriber: this.updateAnnotationSubscriber,
+                    // getState: this.state.annotations,
+                    // getState: this.getAnnotationsState,
+                    getState: this.getAnnotationsState,
+                  },
+                }}
+                mentionProvider={Promise.resolve(new MockMentionResource({
+                  minWait: 10,
+                  maxWait: 25,
+                }, this.state.users))}
 
-            mentionProvider={Promise.resolve(new MockMentionResource({
-              minWait: 10,
-              maxWait: 25,
-            }, this.state.users))}
-
-            waitForMediaUpload={true}
-            allowTextColor={{
-              allowMoreTextColors: true,
-            }}
-            allowLayouts={{
-              allowBreakout: false,
-              useLongPressSelection: false,
-              UNSAFE_allowSingleColumnLayout: true,
-              UNSAFE_addSidebarLayouts: true,
-            }}
-            allowTables={{
-              advanced: true,
-              allowColumnResizing: true,
-              allowMergeCells: true,
-              allowNumberColumn: true,
-              allowBackgroundColor: true,
-              allowHeaderRow: true,
-              allowHeaderColumn: true,
-              permittedLayouts: 'all',
-              stickToolbarToBottom: true,
-              allowColumnSorting: true,
-              stickyHeaders: true,
-              allowCollapse: true,
-            }}
-            allowExpand={{
-              allowInsertion: true,
-              allowInteractiveExpand: true,
-            }}
-            shouldFocus={true}
-            media={{
-              allowLinking: true,
-              fullWidthEnabled: true,
-              featureFlags: {
-                captions: true,
-              },
-              allowMediaSingle: true,
-              isCopyPasteEnabled: true,
-              allowLazyLoading: true,
-              allowAdvancedToolBarOptions: true,
-              waitForMediaUpload: true,
-              // allowAltTextOnImages: true,
-            }}
-            primaryToolbarComponents={
-              <WithEditorActions
-                render={(actions: EditorActions) => (
-                  <div>
-                    <button
-                      onClick={async () => {
-                        let currentContent = await actions.getValue()
-                        console.log(currentContent)
-                        let currentDataElement = document.querySelector("#current-data")
-                        if (currentDataElement){
-                          currentDataElement.innerHTML = JSON.stringify(currentContent, null, 4)
-                        }
-                      }
-                      }>
-                    Get data
-                    </button>
-                    <button
-                      id={"ak-publish-document"}
-                      onClick={async () => {
-                        let currentContent = await actions.getValue()
-                        // @ts-ignore
-                        let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
-                        let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
-                        if (currentContent && updateContentURL && access_token) {
-
-                          let data = {
-                            'document': currentContent,
-                            '_method': 'PUT'
+                waitForMediaUpload={true}
+                allowTextColor={{
+                  allowMoreTextColors: true,
+                }}
+                allowLayouts={{
+                  allowBreakout: false,
+                  useLongPressSelection: false,
+                  UNSAFE_allowSingleColumnLayout: true,
+                  UNSAFE_addSidebarLayouts: true,
+                }}
+                allowTables={{
+                  advanced: true,
+                  allowColumnResizing: true,
+                  allowMergeCells: true,
+                  allowNumberColumn: true,
+                  allowBackgroundColor: true,
+                  allowHeaderRow: true,
+                  allowHeaderColumn: true,
+                  permittedLayouts: 'all',
+                  stickToolbarToBottom: true,
+                  allowColumnSorting: true,
+                  stickyHeaders: true,
+                  allowCollapse: true,
+                }}
+                allowExpand={{
+                  allowInsertion: true,
+                  allowInteractiveExpand: true,
+                }}
+                shouldFocus={true}
+                media={{
+                  allowLinking: true,
+                  fullWidthEnabled: true,
+                  featureFlags: {
+                    captions: true,
+                  },
+                  allowMediaSingle: true,
+                  isCopyPasteEnabled: true,
+                  allowLazyLoading: true,
+                  allowAdvancedToolBarOptions: true,
+                  waitForMediaUpload: true,
+                  // allowAltTextOnImages: true,
+                }}
+                primaryToolbarComponents={
+                  <WithEditorActions
+                    render={(actions: EditorActions) => (
+                      <div>
+                        <button
+                          onClick={async () => {
+                            let currentContent = await actions.getValue()
+                            console.log(currentContent)
+                            let currentDataElement = document.querySelector("#current-data")
+                            if (currentDataElement) {
+                              currentDataElement.innerHTML = JSON.stringify(currentContent, null, 4)
+                            }
                           }
+                          }>
+                          Get data
+                        </button>
+                        <button
+                          onClick={async () => {
+                            //@ts-ignore
+                            const room = `coch-org-document-${window.Laravel.docId}`
 
-                          fetch(updateContentURL, {
-                            method: 'POST',
-                            headers: {
-                              'X-CSRF-TOKEN': access_token,
-                              'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify(data)
-                          })
-                            .then(response => response.json())
-                            .then(data => {
-                              let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
+                            await fetch(`https://n.coch.org/document-room/delete/${room}`)
+                              .then((response) => {
+                                return response.json();
+                              }).then(data => {
+                                console.log(data)
+                              })
 
-                              if (documentContentWrapper) {
-                                documentContentWrapper.innerHTML = data.data.document.content
+                          }}
+                        >
+                          Refresh
+                        </button>
+                        <button
+                          id={"ak-publish-document"}
+                          onClick={async () => {
+                            let currentContent = await actions.getValue()
+                            // @ts-ignore
+                            let updateContentURL = document.querySelector("#edit-document-form")?.dataset.updateContent
+                            let access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
+                            if (currentContent && updateContentURL && access_token) {
 
-                                setExpandEvents()
-                                setDownloadAttachmentsEvents()
-
-                                const documentContentLoad = document.querySelector('.document-content')
-
-                                // @ts-ignore
-                                documentContentLoad.classList.toggle('show-draft')
+                              let data = {
+                                'document': currentContent,
+                                '_method': 'PUT'
                               }
-                            })
-                        }
-                      }}
-                    >
-                      Publish
-                    </button>
-                  </div>
-                )}
+
+                              fetch(updateContentURL, {
+                                method: 'POST',
+                                headers: {
+                                  'X-CSRF-TOKEN': access_token,
+                                  'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(data)
+                              })
+                                .then(response => response.json())
+                                .then(data => {
+                                  let documentContentWrapper = document.querySelector(".document-content-public .srm-description__content-inner")
+
+                                  if (documentContentWrapper) {
+                                    documentContentWrapper.innerHTML = data.data.document.content
+
+                                    setExpandEvents()
+                                    setDownloadAttachmentsEvents()
+
+                                    const documentContentLoad = document.querySelector('.document-content')
+
+                                    // @ts-ignore
+                                    documentContentLoad.classList.toggle('show-draft')
+                                  }
+                                })
+                            }
+                          }}
+                        >
+                          Publish
+                        </button>
+                      </div>
+                    )}
+                  />
+                }
               />
-            }
-            // onChange={(editorView: EditorView, meta) => {
-            //   console.log(editorView, meta)
-            // }}
-          />
             </div>
           </div>
         </IntlProvider>
