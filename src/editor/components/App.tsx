@@ -33,7 +33,7 @@ type AtlassianEditorState = {
   annotations: Annotation[],
 }
 
-export let annotationsList: string[] = []
+export let annotationsList: Annotation[] = []
 
 const setExpandEvents = () => {
   let expandItems = document.querySelectorAll('.document-content-public .ak-editor-expand')
@@ -181,6 +181,7 @@ export default class AtlassianEditor extends React.Component<any, AtlassianEdito
             annotations: data,
             annotationsLoaded: true,
           })
+          console.log(this.state)
         });
     }
   }
@@ -202,22 +203,42 @@ export default class AtlassianEditor extends React.Component<any, AtlassianEdito
             <div style={content}>
               <Editor
                 onEditorReady={() => {
-                  if (this.state.annotations.length > 0){
+                  console.log('ready')
+                  if (this.state.annotations.length > 0) {
                     this.state.annotations.forEach((annotation: Annotation) => {
                       this.updateAnnotationSubscriber.emit('create', annotation.id)
-                      annotationsList.push(annotation.id)
+                      annotationsList.push(annotation)
                     })
                   }
                 }}
                 onChange={() => {
-                  let annotations = document.querySelectorAll('.akEditor .annotationView-content-wrap')
-                  annotations.forEach(annotationItem => {
-                    let annotationId = annotationItem.getAttribute('id')!
-                    if (!annotationsList.includes(annotationId)){
-                      annotationsList.push(annotationId)
-                      this.updateAnnotationSubscriber.emit('create', annotationId)
+                  console.log('start change')
+                  let documentAnnotations = Array.from(document.querySelectorAll('.akEditor .annotationView-content-wrap'))
+                  console.log(annotationsList, documentAnnotations)
+                  if (annotationsList.length < documentAnnotations.length) {
+                    console.log('start add')
+                    for (let annotationItem of documentAnnotations) {
+                      let foundedAnnotation = annotationsList.find(item => item.id === annotationItem.id)
+                      console.log(foundedAnnotation)
+                      if (!foundedAnnotation) {
+                        console.log('changed')
+                        annotationsList.push({
+                          id: annotationItem.id,
+                          isResolved: false,
+                        })
+                        this.updateAnnotationSubscriber.emit('create', annotationItem.id)
+                        console.log('added')
+                        break
+                      }
                     }
-                  })
+                  } else if (annotationsList.length > documentAnnotations.length) {
+                    console.log('start deleting')
+                    let itemForDelete = annotationsList.filter(item => !documentAnnotations.find(annotation => annotation.id === item.id))
+                    console.log('item for delete', itemForDelete)
+                    annotationsList = annotationsList.filter(value => value.id !== itemForDelete[0].id)
+                    this.updateAnnotationSubscriber.emit('delete', itemForDelete[0].id)
+                    console.log('deleted')
+                  }
                 }}
                 appearance="full-page"
                 extensionProviders={() => [
@@ -242,6 +263,8 @@ export default class AtlassianEditor extends React.Component<any, AtlassianEdito
                     // getState: this.state.annotations,
                     // getState: this.getAnnotationsState,
                     getState: this.getAnnotationsState,
+                    disallowOnWhitespace: false,
+
                   },
                 }}
                 mentionProvider={Promise.resolve(new MockMentionResource({
@@ -311,17 +334,24 @@ export default class AtlassianEditor extends React.Component<any, AtlassianEdito
                           onClick={async () => {
                             //@ts-ignore
                             const room = `coch-org-document-${window.Laravel.docId}`
-
                             await fetch(`https://n.coch.org/document-room/delete/${room}`)
                               .then((response) => {
                                 return response.json();
                               }).then(data => {
                                 console.log(data)
                               })
-
                           }}
                         >
                           Refresh
+                        </button>
+                        <button
+                          id={"ak-blur-document"}
+                          style={{display: "none"}}
+                          onClick={async () => {
+
+                          }}
+                        >
+                          Blur
                         </button>
                         <button
                           id={"ak-publish-document"}

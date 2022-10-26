@@ -45,8 +45,21 @@ export class CreateCommentView extends React.Component<any, any> {
         }).then(response => response.json())
           .then(data => {
             if (data.isCreated){
-              annotationsList.push(key)
+              annotationsList.push({
+                id: key,
+                isResolved: false,
+              })
               this.onCreate(key);
+
+              var el = document.querySelector(".ProseMirror")!
+              var range = document.createRange()
+              var sel = window.getSelection()!
+
+              range.setStart(el.childNodes[0], 0)
+
+              sel.removeAllRanges()
+              sel.addRange(range)
+
             } else {
               console.error(data.error.message)
             }
@@ -70,12 +83,14 @@ export class CreateCommentView extends React.Component<any, any> {
             }
           />
         </div>
-        <Button appearance="primary" onClick={onCreateAnnotation}>
-          Save
-        </Button>
-        <Button appearance="primary" onClick={onPopupClose}>
-          Close
-        </Button>
+        <div className={'annotation-popup__buttons'}>
+          <Button appearance="primary" onClick={onCreateAnnotation}>
+            Save
+          </Button>
+          <Button appearance="primary" onClick={onPopupClose}>
+            Close
+          </Button>
+        </div>
       </div>
     );
   }

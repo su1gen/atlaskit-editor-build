@@ -1,13 +1,18 @@
 import {InlineCommentViewComponentProps} from "@atlaskit/editor-core";
 import * as React from "react";
 import Button from "@atlaskit/button/standard-button";
-import {Avatar} from "./avatar";
+import {UserInfo} from "./user-info";
+import { annotationsList } from '../App'
 
 export class ShowCommentView extends React.Component<any, any> {
   private onDelete: any;
   private onResolve: any;
   private onClose: any;
   private annotations: any;
+  private getAnnotationUrl: string | undefined;
+  private resolveAnnotationUrl: string | undefined;
+  private deleteAnnotationUrl: string | undefined;
+  private access_token: string | undefined | null;
 
   constructor(props: InlineCommentViewComponentProps) {
     super(props);
@@ -19,12 +24,15 @@ export class ShowCommentView extends React.Component<any, any> {
     this.state = {
       annotationData: null
     }
+    this.getAnnotationUrl = (document.querySelector('#edit-document-form') as HTMLElement)?.dataset?.atlaskitGetAnnotation
+    this.resolveAnnotationUrl = (document.querySelector('#edit-document-form') as HTMLElement)?.dataset?.atlaskitResolveAnnotation
+    this.deleteAnnotationUrl = (document.querySelector('#edit-document-form') as HTMLElement)?.dataset?.atlaskitDeleteAnnotation
+    this.access_token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content")
   }
 
   componentDidMount() {
-    let getAnnotationUrl = (document.querySelector('#edit-document-form') as HTMLElement)?.dataset?.atlaskitGetAnnotation
-    if (getAnnotationUrl) {
-      fetch(`${getAnnotationUrl}?annotationKey=${this.annotations[0].id}`)
+    if (this.getAnnotationUrl) {
+      fetch(`${this.getAnnotationUrl}?annotationKey=${this.annotations[0].id}`)
         .then(response => response.json())
         .then(data => {
           this.setState({
@@ -35,7 +43,7 @@ export class ShowCommentView extends React.Component<any, any> {
   }
 
   render() {
-    if (!this.state.annotationData) {
+    if (!this.state.annotationData || this.state.annotationData.error) {
       return null;
     }
 
@@ -44,31 +52,69 @@ export class ShowCommentView extends React.Component<any, any> {
     };
 
     const onPopupResolve = () => {
-      this.onResolve(this.annotations[0].id);
+      if (this.resolveAnnotationUrl && this.access_token){
+        let annotationData = {
+          key: this.annotations[0].id,
+        }
+
+        fetch(this.resolveAnnotationUrl, {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-TOKEN': this.access_token,
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify(annotationData)
+        }).then(response => response.json())
+          .then(data => {
+            if (data.isResolved){
+              this.onResolve(this.annotations[0].id);
+            } else {
+              console.error(data.error.message)
+            }
+          })
+      } else {
+        console.error('There is no url for creating annotations')
+      }
     };
 
     const onPopupDelete = () => {
-      this.onDelete(this.annotations[0].id);
+      if (this.deleteAnnotationUrl && this.access_token){
+        let annotationData = {
+          key: this.annotations[0].id,
+        }
+
+        fetch(this.deleteAnnotationUrl, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': this.access_token,
+            'Content-Type': 'application/json;charset=utf-8'
+          },
+          body: JSON.stringify(annotationData)
+        }).then(response => response.json())
+          .then(data => {
+            if (data.isDeleted){
+              console.log(this.annotations, annotationsList)
+              this.onDelete(this.annotations[0].id);
+            } else {
+              console.error(data.error.message)
+            }
+          })
+      } else {
+        console.error('There is no url for creating annotations')
+      }
     };
 
 
     return (
       <div className={'annotation-popup'}>
-        {/*<AvatarItem*/}
-        {/*  avatar={*/}
-        {/*    <Avatar*/}
-        {/*      src={this.state.annotationData.avatar}*/}
-        {/*      presence="online"*/}
-        {/*    />*/}
-        {/*  }*/}
-        {/*  primaryText={this.state.annotationData.name}*/}
-        {/*/>*/}
-        <Avatar src={this.state.annotationData.avatar.avatarSrc}></Avatar>
-        <div style={{padding: '8px'}}>{this.state.annotationData.text}</div>
-        <div style={{padding: '4px'}}>
-          <Button appearance="primary" onClick={onPopupResolve}>
-            Resolve
-          </Button>
+        <UserInfo avatarSrc={this.state.annotationData.avatar.avatarSrc}
+                  userName={this.state.annotationData.name}
+                  isAvatarLink={this.state.annotationData.avatar.isAvatarLink}></UserInfo>
+        <div className={'annotation-popup__text'}>{this.state.annotationData.text}</div>
+        <div className={'annotation-popup__buttons'}>
+          {/*<Button appearance="primary" onClick={onPopupResolve}>*/}
+          {/*  Resolve*/}
+          {/*</Button>*/}
           <Button appearance="primary" onClick={onPopupDelete}>
             Delete
           </Button>
